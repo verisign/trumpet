@@ -1,0 +1,79 @@
+
+## Project structure
+
+The current project is composed of 3 sub-projects:
+
+1. [`common`](../common)  
+  The `common` sub-project is where the reusable code is shared across the projects.
+
+2. [`server`](../server)  
+  Trumpet server. Build this project to [deploy and run Trumpet](build)
+
+3. [`client`](../client)  
+  Example of client application, reading from Kakfa and doing someting meaningful.
+
+4. [`docs`](../docs)  
+  Where the documentation sits.
+
+## Build it
+
+This project is based on [Maven](http://maven.apache.org). To build it, you need to ensure 
+you have java and maven installed, and then: 
+
+```mvn clean install```
+
+And you can directly import the project in most of the IDE, too.
+
+### RPM
+
+Running `mvn package` (included in `install`) will also generate an RPM.
+
+The RPM can be transformed in .deb via Alien or FPM (see [https://www.howtoforge.com/converting_rpm_to_deb_with_alien](https://www.howtoforge.com/converting_rpm_to_deb_with_alien) 
+or [https://github.com/jordansissel/fpm](https://github.com/jordansissel/fpm) for more generic conversion) if required.
+
+### Compatibility with Hadoop 2.6.0 and 2.7.0+
+
+[HDFS-7446](https://issues.apache.org/jira/browse/HDFS-7446), released as part of 
+[Hadoop 2.7.0 release](https://github.com/aw-altiscale/eco-release-metadata/blob/master/HADOOP/2.7.0/RELEASENOTES.2.7.0.md), 
+changed the HDFS-Inotify interface. Trumpet is using a 
+[compatibility class](../server/src/main/java/org/apache/hadoop/hdfs/inotify/InotifyCompat.java) 
+which uses reflection to work around compatibility issues.
+
+Trumpet is tested with 
+* CDH 5.2
+* CDH 5.3
+* HDP 2.2
+* Hadoop 2.6.0
+* Hadoop 2.7.0
+
+## Run it
+
+Trumpet server is a long running process to run alongside the JournalNode. A [supervisord](http://www.supervisord.org) 
+[config file](../server/src/main/config/trumpet-server.ini) is also provided if you'd like to use supervisord daemon to launch Trumpet.
+
+Once the RPM (or equivalent) is installed, manually launch Trumpet like this:
+
+```
+$ /opt/trumpet/bin/trumpet.sh --zk.connect <zk_ip:2181>
+```
+
+Note: If you're running CDH, it's highly likely that `dfs.journalnode.name.dir` is not in `/etc/hadoop/conf/hdfs-site.xml`. 
+You need to pass `--dfs.edits.dir` parameters to specify manually the directory:
+
+```
+$ /opt/trumpet/bin/trumpet.sh --zk.connect <zk_ip:2181> --dfs.edits.dir <root_dir_where_edits_files_are_stored>
+```
+
+Note #2: `<root_dir_where_edits_files_are_stored>` should point to the same location than dfs.journalnode.name.dir, 
+i.e. excluding `current/BP...TODO...`.
+
+Or copy `/opt/trumpet/conf/trumpet-server.ini` in `/etc/supervisord.d` to have have Trumpet 
+run as a supervisord process (recommended).
+
+```
+sudo cp /opt/trumpet/config/trumpet-server.ini /etc/supervisord.d/
+sudo vi /etc/supervisord.d/trumpet-server.ini # update <zk_ip:2181> and potentially add --dfs.edits.dir if not found in /etc/hadood/conf/hdfs-site.xml
+sudo supervisorctl reread
+sudo supervisorctl add trumpet # will start Trumpet as autostart is turned on
+```
+

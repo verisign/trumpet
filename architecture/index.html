@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Architecture - Trumpet -- HDFS Notification System for Apache Hadoop</title>
+  <title>How it works - Trumpet</title>
   
 
   <link rel="shortcut icon" href="../img/favicon.ico">
@@ -16,19 +16,11 @@
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="../css/highlight.css">
-  <link href="../site/css/base.css" rel="stylesheet">
-  <link href="../site/css/bootstrap-custom.min.css" rel="stylesheet">
-  <link href="../site/css/font-awesome-4.0.3.css" rel="stylesheet">
-  <link href="../site/css/highlight.css" rel="stylesheet">
 
   <script src="../js/jquery-2.1.1.min.js"></script>
   <script src="../js/modernizr-2.8.3.min.js"></script>
   <script type="text/javascript" src="../js/highlight.pack.js"></script>
-  <script src="../js/theme.js"></script>
-  <script src="../site/js/base.js"></script>
-  <script src="../site/js/bootstrap-3.0.3.min.js"></script>
-  <script src="../site/js/highlight.pack.js"></script>
-  <script src="../site/js/jquery-1.10.2.min.js"></script> 
+  <script src="../js/theme.js"></script> 
 
   
 </head>
@@ -40,7 +32,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
       <div class="wy-side-nav-search">
-        <a href=".." class="icon icon-home"> Trumpet -- HDFS Notification System for Apache Hadoop</a>
+        <a href=".." class="icon icon-home"> Trumpet</a>
         
       </div>
 
@@ -49,15 +41,7 @@
     
         
             <li class="toctree-l1 ">
-                <a class="" href="..">Trumpet Home</a>
-                
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 ">
-                <a class="" href="../changelog/">Changelog</a>
+                <a class="" href="..">What is Trumpet</a>
                 
             </li>
         
@@ -65,7 +49,7 @@
     
         
             <li class="toctree-l1 current">
-                <a class="current" href="./">Architecture</a>
+                <a class="current" href="./">How it works</a>
                 
                     <ul>
                     
@@ -73,6 +57,9 @@
                         
                     
                         <li class="toctree-l3"><a href="#publish-into-kafka">Publish into Kafka</a></li>
+                        
+                    
+                        <li class="toctree-l3"><a href="#events-as-json-dictionary">Events as JSON Dictionary</a></li>
                         
                     
                         <li class="toctree-l3"><a href="#leader-election">Leader Election</a></li>
@@ -95,7 +82,7 @@
     
         
             <li class="toctree-l1 ">
-                <a class="" href="../build/">Build Deploy and Run</a>
+                <a class="" href="../installation/">I want it!</a>
                 
             </li>
         
@@ -103,7 +90,23 @@
     
         
             <li class="toctree-l1 ">
-                <a class="" href="../operations/">Operations</a>
+                <a class="" href="../applications/">Write your Apps</a>
+                
+            </li>
+        
+
+    
+        
+            <li class="toctree-l1 ">
+                <a class="" href="../operations/">For DevOps</a>
+                
+            </li>
+        
+
+    
+        
+            <li class="toctree-l1 ">
+                <a class="" href="../changelog/">Changelog</a>
                 
             </li>
         
@@ -128,7 +131,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="..">Trumpet -- HDFS Notification System for Apache Hadoop</a>
+        <a href="..">Trumpet</a>
       </nav>
 
       
@@ -138,7 +141,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="..">Docs</a> &raquo;</li>
     
-    <li>Architecture</li>
+    <li>How it works</li>
       <li class="wy-breadcrumbs-aside">
         
       </li>
@@ -152,56 +155,74 @@ and streaming them to multiple clients.</p>
 <p>The selected approach is thus to read the edits log file directly from the local filesystem from either the NameNode or, 
 more recommended, the JournalNode, and stream the interesting transactions into <a href="http://kafka.apache.org">Kafka</a>. 
 Many clients might in turn read from Kafka the complete set of transactions. The process of reading the edits log 
-is independent from the NameNode or JournalNode and thus non-intrusive at all. 
-And the Kafka cluster can be scaled out independently.</p>
+is totally independent from the NameNode or JournalNode and thus non-intrusive at all. 
+And of course, the Kafka cluster can be scaled out independently.</p>
+<p>The 10K feet architecture diagram would look like this:</p>
 <p><img alt="Trumpet Flow Diagram 1" src="../trumpet-flow.png" title="Trumpet Flow Diagram 1.0" /></p>
 <h2 id="poll-the-edit-log-directory">Poll the edit log directory</h2>
-<p>Because Trumpet is reading from outside the NameNode / JournalNode process, the easiest solution is to poll the edit log 
-directory, to find the latest edit log file and read the transaction from there. 
-This edit log directory is given by the configuration option <code>dfs.journalnode.name.dir</code> (<code>dfs.namenode.name.dir</code> respectively 
-for the NameNode), and is later referred as <code>dfs.*.name.dir</code>.</p>
-<p>Based on naming convention of the edit log dir (read more on that here: http://hortonworks.com/blog/hdfs-metadata-directories-explained/), 
+<p>Trumpet aims at reading from outside the NameNode / JournalNode process. The easiest solution for that is to rely 
+on the <a href="https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/HdfsEditsViewer.html">Offline Edits Viewer</a>, 
+or OEV to read the edits log files, just like <a href="http://en.wikipedia.org/wiki/Redo_log">Redo logs</a> will be parsed in a 
+RDBMS world. The edits log directory is the traversed to find the latest edit log file and read the transaction from there. 
+This edits log directory is either given by the configuration option <code>dfs.journalnode.name.dir</code> (<code>dfs.namenode.name.dir</code> respectively 
+for the NameNode) or set in as a command line argument of Trumpet at startup (see <a href="../installation">installation</a>), and is later 
+referred as <code>dfs.*.name.dir</code>.</p>
+<p>Based on naming convention of the edits log dir (read more on <a href="http://hortonworks.com/blog/hdfs-metadata-directories-explained/">hdfs metadata directory</a>), 
 it's straight forward to find the file containing a given transaction and resuming the read from this transaction. 
 Hadoop source code provides all the primitive functions to achieve that in few lines of code.</p>
 <h2 id="publish-into-kafka">Publish into Kafka</h2>
-<p>Kafka publisher subscriber model is a good fit to push the transactions into and allow several clients to read from. 
+<p>Kafka publisher-subscriber model is a good fit to push the transactions into and allow several clients to read from. 
 In current implementation supports <a href="https://archive.apache.org/dist/kafka/0.8.2.1/RELEASE_NOTES.html">Kafka 0.8.2.1</a> 
 and <a href="https://archive.apache.org/dist/kafka/0.8.1.1/RELEASE_NOTES.html">Kafka 0.8.1.1</a>. 
-The topic contains one single partition to guarantee consistent ordering of the transactions. 
-This might change in the future. Several replica are however strongly recommended.</p>
+While the choice is let to the user, it is recommended to use a topic with one single partition to guarantee 
+consistent ordering of the transactions. This recommendation might change in the future though. Several replica are 
+however strongly recommended.</p>
 <p>Trumpet requires to have the topic created in advance. The default topic name is <code>hdfs.inotify.events</code>.
 An example of topic creation would be:</p>
 <ul>
 <li>Kakfa 0.8.1</li>
 </ul>
-<pre><code>$ bin/kafka-topic.sh --create --zookeeper &lt;zk_ip:2181&gt; --replication-factor 4 --partitions 1 --topic hdfs.inotify.events
+<pre><code class="bash">$ $KAFKA_HOME/bin/kafka-topic.sh --create --zookeeper &lt;zk_ip:2181&gt; --replication-factor 4 --partitions 1 --topic hdfs.inotify.events
 </code></pre>
 
 <ul>
-<li>Kakfa 0.8.2</li>
+<li>Kakfa 0.8.2-cp</li>
 </ul>
-<pre><code>$ kafka-topics --create --zookeeper &lt;zk_ip:2181&gt; --replication-factor 4 --partitions 1 --topic hdfs.inotify.events
+<pre><code class="bash">$ kafka-topics --create --zookeeper &lt;zk_ip:2181&gt; --replication-factor 4 --partitions 1 --topic hdfs.inotify.events
 </code></pre>
 
 <p>Of course the scalability of the client applications reading the transactions will be influenced by 
-the scalability of your Kafka cluster. Trumpet does not guarantee any transaction or reader persistence 
-to the client application. The work is delegated to the clients.</p>
+the scalability of your Kafka cluster. Trumpet guarantees <strong>exactly once</strong> delivery of the HDFS event, 
+but does not guarantee any transaction or reader persistence to the client application. 
+This responsibility is delegated to the clients and most likely the Kafka consumer group.</p>
+<h2 id="events-as-json-dictionary">Events as JSON Dictionary</h2>
+<p>INotify interface changed between Hadoop 2.6 and Hadoop 2.7. In order to provide compatibility across these different versions 
+events are published in Kafka as simple JSON dictionary. 
+In the client Java API, the event is retrieved back as a simple <a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a>.
+See the section on <a href="../applications">writing client applications</a> for more details about the events format.</p>
 <h2 id="leader-election">Leader Election</h2>
 <p>Hadoop runs with HA in mind, and this project follows the same concept. Trumpet is designed to run alongside the JournalNode 
-(or NameNode) process, reading from the local <code>dfs.*.name.dir</code> directory. The idea is to run one Trumpet process per JournalNode, 
-the processes running a leader election in Zookeeper using <a href="http://curator.apache.org/">Curator</a> 
+(or NameNode) process, reading from the local <code>dfs.*.name.dir</code> directory. The idea is to run one Trumpet server process per 
+JournalNode, the processes running a leader election in Zookeeper using <a href="http://curator.apache.org/">Curator</a> 
 <a href="http://curator.apache.org/curator-recipes/leader-election.html">recipe</a> to guarantee only one active process 
-at the same time. The processes are also monitoring the JournalNode process, and release the leadership 
+at the same time. The processes are also monitoring the JournalNode process, releasing quickly the leadership 
 if the JournalNode process died.</p>
 <h2 id="resume-from-previous-run">Resume from previous run</h2>
-<p>Once a Trumpet process become active (leader), it will find out from Kafka which was the latest published transaction, 
+<p>Once a Trumpet server process become active (leader), it will find out from Kafka which was the latest published transaction, 
 resuming the operation from there (or, in case of prolonged downtime, resume with the first found transaction in 
 the local <code>dfs.*.name.dir</code> directory.</p>
 <h2 id="rolling-upgrade">Rolling upgrade</h2>
 <p>In case of production usage of Trumpet, rolling upgrades need to be addressed. With its leader election 
 feature, Trumpet rolling upgrade is as easy as upgrading one Trumpet worker at the time. 
 A tool which tells you who are the Trumpet workers and which one is active is also provided, 
-see below.</p>
+see the <a href="../operations">operations</a> section.</p>
+<p>In details, a rolling upgrade looks like: 
+1. stop Trumpet, 
+2. upgrade the JournalNode, 
+3. restart the JournalNode, 
+4. upgrade Trumpet, 
+5. restart Trumpet</p>
+<p>Repeat for all the JournalNode/Trumpet instances.</p>
 <h2 id="zookeeper-separation">Zookeeper separation</h2>
 <p>Zookeeper is a critical component of the Hadoop infrastructure, and it's common to split Zookeeper cluster, 
 one for the infrastructure components, like Kafka, NameNode etc... and another Zookeeper for more 
@@ -218,10 +239,10 @@ Kafka discovery and leader election. Use:</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../build/" class="btn btn-neutral float-right" title="Build Deploy and Run"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../installation/" class="btn btn-neutral float-right" title="I want it!"/>Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../changelog/" class="btn btn-neutral" title="Changelog"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href=".." class="btn btn-neutral" title="What is Trumpet"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -247,14 +268,14 @@ Kafka discovery and leader election. Use:</p>
 <div class="rst-versions" role="note" style="cursor: pointer">
     <span class="rst-current-version" data-toggle="rst-current-version">
         
-      <span><a href="../changelog/" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      <span style="margin-left: 15px"><a href="../build/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href=".." style="color: #fcfcfc;">&laquo; Previous</a></span>
+      <span style="margin-left: 15px"><a href="../installation/" style="color: #fcfcfc">Next &raquo;</a></span>
     </span>
 </div>
 
 <!--
 MkDocs version  : 0.12.2
-Docs Build Date : 2015-06-03 12:46:44.617919
+Docs Build Date : 2015-06-04 06:44:55.646863
 -->
 </body>
 </html>

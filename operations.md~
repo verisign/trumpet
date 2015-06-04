@@ -28,7 +28,7 @@ $ /opt/trumpet/server/bin/list-trumpet-workers.sh --zk.connect <zk_ip:2181>
 ```
 
 
-## Use it <a id="Use"></a>
+## Use it
 
 Trumpet comes out as a new building block in the Hadoop ecosystem 
 and unleashes brand new capabilities to HDFS. As it relies mostly on Kafka 

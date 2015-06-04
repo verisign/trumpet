@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>For DevOps - Trumpet</title>
+  <title>Write your Apps - Trumpet</title>
   
 
   <link rel="shortcut icon" href="../img/favicon.ico">
@@ -64,29 +64,32 @@
 
     
         
-            <li class="toctree-l1 ">
-                <a class="" href="../applications/">Write your Apps</a>
+            <li class="toctree-l1 current">
+                <a class="current" href="./">Write your Apps</a>
+                
+                    <ul>
+                    
+                        <li class="toctree-l3"><a href="#dependency">Dependency</a></li>
+                        
+                    
+                        <li class="toctree-l3"><a href="#use-it">Use it</a></li>
+                        
+                    
+                        <li class="toctree-l3"><a href="#events-format">Events Format</a></li>
+                        
+                    
+                        <li class="toctree-l3"><a href="#example-application">Example Application</a></li>
+                        
+                    
+                    </ul>
                 
             </li>
         
 
     
         
-            <li class="toctree-l1 current">
-                <a class="current" href="./">For DevOps</a>
-                
-                    <ul>
-                    
-                        <li class="toctree-l3"><a href="#validate-correctness-and-completeness">Validate correctness and completeness</a></li>
-                        
-                    
-                        <li class="toctree-l3"><a href="#peek-kafka-topic">Peek Kafka topic</a></li>
-                        
-                    
-                        <li class="toctree-l3"><a href="#workers-status">Workers status</a></li>
-                        
-                    
-                    </ul>
+            <li class="toctree-l1 ">
+                <a class="" href="../operations/">For DevOps</a>
                 
             </li>
         
@@ -129,7 +132,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="..">Docs</a> &raquo;</li>
     
-    <li>For DevOps</li>
+    <li>Write your Apps</li>
       <li class="wy-breadcrumbs-aside">
         
       </li>
@@ -138,32 +141,44 @@
 </div>
           <div role="main">
             <div class="section">
-              <p>To operate Trumpet on a day-to-day basis, tools are provided to help to understand what's going on in Trumpet</p>
-<h2 id="validate-correctness-and-completeness">Validate correctness and completeness</h2>
-<p>A tool is provided which goes back in time as much it can both in the kafka topic and <code>dfs.*.name.dir</code> 
-and validate that all the transactions in the edit log dir are in Kafka and match:</p>
-<pre><code>$ /opt/trumpet/server/bin/events-validator.sh --zk.connect &lt;zk_ip:2181&gt; --dfs.edits.dir &lt;root_dir_where_edits_files_are_stored&gt; --numofevents 1000000
+              <p>Trumpet comes out as a new building block in the Hadoop ecosystem 
+and unleashes brand new capabilities to HDFS. As it relies mostly on Kafka 
+for the distribution of the events to the clients, it scales pretty well.</p>
+<p>Here are the steps to let you write your own client applications:</p>
+<h2 id="dependency">Dependency</h2>
+<p>Add the dependency to the Trumpet client in your project</p>
+<pre><code class="xml">        &lt;dependency&gt;
+            &lt;groupId&gt;com.verisign.vscc.trumpet&lt;/groupId&gt;
+            &lt;artifactId&gt;client&lt;/artifactId&gt;
+            &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+        &lt;/dependency&gt;
 </code></pre>
 
-<h2 id="peek-kafka-topic">Peek Kafka topic</h2>
-<p>At any time, you can peek the Kafka topic, i.e. retrieve and display in a console the <em>n</em> latest messages:</p>
-<pre><code>$ /opt/trumpet/server/bin/peek-events.sh --zk.connect &lt;zk_ip:2181&gt; --numofevents 100
+<h2 id="use-it">Use it</h2>
+<p>Now it's as easy as using an <a href="https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html">Iterable</a>.</p>
+<pre><code class="java">String kafkaTopic = ...
+String zkConnect = ...
+for (Map&lt;String, Object&gt; event : new TrumpetEventStreamer(zkConnect, kafkaTopic)) {
+    ... do something with your event!
+}
 </code></pre>
 
-<h2 id="workers-status">Workers status</h2>
-<p>An utility is also provided to display the running Trumpet workers as well as which one is the leader</p>
-<pre><code>$ /opt/trumpet/server/bin/list-trumpet-workers.sh --zk.connect &lt;zk_ip:2181&gt;
-</code></pre>
+<h2 id="events-format">Events Format</h2>
+<p>TODO!</p>
+<h2 id="example-application">Example Application</h2>
+<p><code>com.verisign.vscc.hdfs.trumpet.client.example.TestApp</code> is a sample application, listening to Trumpet and filtering out 
+<code>_SUCCESS</code> files, indicating the success of a MapReduce application.</p>
+<p>It would be really easy to start a distcp job from here to, for instance, replicate the resulting data into a different cluster.</p>
             </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../changelog/" class="btn btn-neutral float-right" title="Changelog"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../operations/" class="btn btn-neutral float-right" title="For DevOps"/>Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../applications/" class="btn btn-neutral" title="Write your Apps"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../installation/" class="btn btn-neutral" title="I want it!"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -189,14 +204,14 @@ and validate that all the transactions in the edit log dir are in Kafka and matc
 <div class="rst-versions" role="note" style="cursor: pointer">
     <span class="rst-current-version" data-toggle="rst-current-version">
         
-      <span><a href="../applications/" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      <span style="margin-left: 15px"><a href="../changelog/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../installation/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      <span style="margin-left: 15px"><a href="../operations/" style="color: #fcfcfc">Next &raquo;</a></span>
     </span>
 </div>
 
 <!--
 MkDocs version  : 0.12.2
-Docs Build Date : 2015-06-04 06:44:55.671525
+Docs Build Date : 2015-06-04 06:44:55.665908
 -->
 </body>
 </html>

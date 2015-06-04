@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Trumpet -- HDFS Notification System for Apache Hadoop</title>
+  <title>Trumpet</title>
   
 
   <link rel="shortcut icon" href="./img/favicon.ico">
@@ -16,19 +16,11 @@
   <link rel="stylesheet" href="./css/theme.css" type="text/css" />
   <link rel="stylesheet" href="./css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="./css/highlight.css">
-  <link href="./site/css/base.css" rel="stylesheet">
-  <link href="./site/css/bootstrap-custom.min.css" rel="stylesheet">
-  <link href="./site/css/font-awesome-4.0.3.css" rel="stylesheet">
-  <link href="./site/css/highlight.css" rel="stylesheet">
 
   <script src="./js/jquery-2.1.1.min.js"></script>
   <script src="./js/modernizr-2.8.3.min.js"></script>
   <script type="text/javascript" src="./js/highlight.pack.js"></script>
-  <script src="./js/theme.js"></script>
-  <script src="./site/js/base.js"></script>
-  <script src="./site/js/bootstrap-3.0.3.min.js"></script>
-  <script src="./site/js/highlight.pack.js"></script>
-  <script src="./site/js/jquery-1.10.2.min.js"></script> 
+  <script src="./js/theme.js"></script> 
 
   
 </head>
@@ -40,7 +32,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
       <div class="wy-side-nav-search">
-        <a href="." class="icon icon-home"> Trumpet -- HDFS Notification System for Apache Hadoop</a>
+        <a href="." class="icon icon-home"> Trumpet</a>
         
       </div>
 
@@ -49,7 +41,7 @@
     
         
             <li class="toctree-l1 current">
-                <a class="current" href=".">Trumpet Home</a>
+                <a class="current" href=".">What is Trumpet</a>
                 
                     <ul>
                     
@@ -61,11 +53,17 @@
                     
                         <li class="toctree-l3"><a href="#quickstart">Quickstart</a></li>
                         
+                            <li><a class="toctree-l4" href="#server">Server</a></li>
+                        
+                            <li><a class="toctree-l4" href="#client-application">Client Application</a></li>
+                        
                     
                         <li class="toctree-l3"><a href="#contributing-to-trumpet">Contributing to Trumpet</a></li>
                         
                     
                         <li class="toctree-l3"><a href="#authors">Authors</a></li>
+                        
+                            <li><a class="toctree-l4" href="#notes">Notes</a></li>
                         
                     
                     </ul>
@@ -76,31 +74,39 @@
     
         
             <li class="toctree-l1 ">
+                <a class="" href="architecture/">How it works</a>
+                
+            </li>
+        
+
+    
+        
+            <li class="toctree-l1 ">
+                <a class="" href="installation/">I want it!</a>
+                
+            </li>
+        
+
+    
+        
+            <li class="toctree-l1 ">
+                <a class="" href="applications/">Write your Apps</a>
+                
+            </li>
+        
+
+    
+        
+            <li class="toctree-l1 ">
+                <a class="" href="operations/">For DevOps</a>
+                
+            </li>
+        
+
+    
+        
+            <li class="toctree-l1 ">
                 <a class="" href="changelog/">Changelog</a>
-                
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 ">
-                <a class="" href="architecture/">Architecture</a>
-                
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 ">
-                <a class="" href="build/">Build Deploy and Run</a>
-                
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 ">
-                <a class="" href="operations/">Operations</a>
                 
             </li>
         
@@ -125,7 +131,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href=".">Trumpet -- HDFS Notification System for Apache Hadoop</a>
+        <a href=".">Trumpet</a>
       </nav>
 
       
@@ -135,7 +141,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href=".">Docs</a> &raquo;</li>
     
-    <li>Trumpet Home</li>
+    <li>What is Trumpet</li>
       <li class="wy-breadcrumbs-aside">
         
       </li>
@@ -144,50 +150,87 @@
 </div>
           <div role="main">
             <div class="section">
-              <p>Trumpet is an highly-available, distributed and scalable <a href="http://hadoop.apache.org/">HDFS</a> 
-<a href="http://en.wikipedia.org/wiki/Inotify">INotify</a>-like building block for Hadoop.</p>
+              <p>Trumpet is an highly-available, fault-tolerant, non intrusive and scalable<br />
+<a href="http://en.wikipedia.org/wiki/Inotify">INotify</a>-like building block for Hadoop <a href="http://hadoop.apache.org/">HDFS</a>.</p>
 <hr />
 <h1 id="context">Context</h1>
 <p>In real world Hadoop deployments it's common to run several HDFS clusters. 
 When doing so, one of the challenge is to replicate the data from one side to another while finding 
 the right trade-offs between the time before the data is replicated 
 and impact on the existing infrastructure.</p>
-<p>This project originated from our work at <a href="https://www.verisigninc.com">Verisign</a>, presented at <a href="http://2014.hadoopsummit.org/">Hadoop Summit Amsterdam in 2014</a> 
-(Hadoop Event Notification System, see <a href="http://hortonworks.com/blog/congrats-hadoop-summit-community-choice-winners/">http://hortonworks.com/blog/congrats-hadoop-summit-community-choice-winners/</a>) 
-which in turn brought inspiration to the community to build the HDFS-INotify building block, 
+<p>This project originated from work at <a href="https://www.verisigninc.com">VeriSign</a> and presented at <a href="http://2014.hadoopsummit.org/">Hadoop Summit Amsterdam in 2014</a> 
+(Hadoop Event Notification System, see <a href="http://hortonworks.com/blog/congrats-hadoop-summit-community-choice-winners/">http://hortonworks.com/blog/congrats-hadoop-summit-community-choice-winners/</a>).<br />
+It in turn brought inspiration to the community to build the HDFS-INotify building block, 
 known as <a href="https://issues.apache.org/jira/browse/HDFS-6634">HDFS-6634</a> and <a href="https://issues.apache.org/jira/browse/HDFS-7446">HDFS-7446</a>.</p>
-<p>But HDFS-INotify is intrusive to the NameNode by design, i.e. it's built as an RPC command hitting directly the NameNode. 
-This allows to have no other dependencies as well as enable (in the future) further processing 
+<p>But HDFS-INotify is <em>intrusive</em> to the NameNode by design, i.e. it's built as an RPC command hitting directly the NameNode. 
+This has a bunch of advantages like allowing to have no other dependencies as well as enable (in the future) further processing 
 directly on the in-memory directory structure. But in real life busy production clusters, where the first 
-goal of an Hadoop SRE is to protect the <a href="http://wiki.apache.org/hadoop/NameNode">NameNode</a>, 
-we'd be more comfortable to run a more decoupled version of HDFS-INotify.</p>
+goal of an Hadoop <a href="http://en.wikipedia.org/wiki/Reliability_engineering">SRE</a>s is to protect the <a href="http://wiki.apache.org/hadoop/NameNode">NameNode</a>, 
+running a more decoupled version of HDFS-INotify would probably be preferred (see <a href="#notes">Notes</a> below)</p>
 <p>So was born the project called Trumpet, in reference of the noise the elephant is producing when shouting.</p>
 <h1 id="features">Features</h1>
+<p>Trumpet put a strong focus on the following areas:</p>
 <ul>
-<li>Scalable -- rely on Kafka for event distribution.</li>
-<li>Non intrusive with low footprint -- run alongside (and not in) the NameNode.</li>
-<li>Highly available and fault tolerant -- Several instances run a leader election in Zookeeper. Recover from previous state.</li>
-<li>Rolling upgrade friendly -- Trumpet knows how to deal with HDFS rolling upgrade.</li>
+<li><strong>Scalable</strong> -- relies on <a href="http://kafka.apache.org">Kafka</a> for event distribution,</li>
+<li><strong>Non intrusive</strong> with low footprint -- runs alongside (and not in) the NameNode</li>
+<li><strong>Highly available</strong> and <strong>fault tolerant</strong> -- several instances run a leader election in <a href="http://zookeeper.apache.org">Zookeeper</a> and recover from previous state,</li>
+<li><strong>Rolling upgrade</strong> ready -- knows how to deal with HDFS rolling upgrade,</li>
+<li><strong>Easy</strong> -- writes client application is trivial,</li>
+<li><strong>Ops friendly</strong> -- provides tools to ensure completeness and correctness of the broadcast.</li>
+<li><strong>Compatibility</strong> -- runs on Hadoop 2.6, 2.7, HDP 2 and CDH 5</li>
 </ul>
+<p>To dig into Trumpet's features and how this works, please go to the <a href="./architecture/">architecture</a> page.</p>
 <h1 id="quickstart">Quickstart</h1>
-<p>TODO.</p>
+<h2 id="server">Server</h2>
+<ol>
+<li>Clone the project and build it
+  <code>mvn clean install</code></li>
+<li>Install the RPM generated in <code>server/target</code></li>
+<li>Create a topic (Trumpet does not create the topic itself). For instance, for Kakfa 0.8.2-cp
+  <code>kafka-topics --create --zookeeper &lt;zk_ip:2181&gt; --replication-factor 4 --partitions 1 --topic hdfs.inotify.events</code></li>
+<li>Start it.
+  <code>/opt/trumpet/server/bin/trumpet.sh --zk.connect &lt;zk_ip:2181&gt;</code></li>
+</ol>
+<p>Or user the <a href="http://www.supervisord.org">supervisord</a> <a href="./../server/src/main/config/trumpet-server.ini">config file</a> provided.</p>
+<p>For more details about the server side, please go to the <a href="./installation/">installation</a> page.</p>
+<h2 id="client-application">Client Application</h2>
+<p>Add the dependency to the Trumpet client in your project</p>
+<pre><code class="xml">        &lt;dependency&gt;
+            &lt;groupId&gt;com.verisign.vscc.trumpet&lt;/groupId&gt;
+            &lt;artifactId&gt;client&lt;/artifactId&gt;
+            &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+        &lt;/dependency&gt;
+</code></pre>
+
+<p>It's as easy as using an <a href="https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html">Iterable</a>.</p>
+<pre><code class="java">String kafkaTopic = ...
+String zkConnect = ...
+for (Map&lt;String, Object&gt; event : new TrumpetEventStreamer(zkConnect, kafkaTopic)) {
+    ... do something with your event!
+}
+</code></pre>
+
+<p>For more details about the client side, please go to the <a href="./applications/">applications</a> page.</p>
 <h1 id="contributing-to-trumpet">Contributing to Trumpet</h1>
 <p>Code contributions, bug reports, feature requests etc. are all welcome.</p>
-<p>If you are new to GitHub please read <a href="https://help.github.com/articles/fork-a-repo">Contributing to a project</a> 
+<p>If you are new to <a href="https://github.com">GitHub</a> please read <a href="https://help.github.com/articles/fork-a-repo">Contributing to a project</a> 
 for how to send patches and pull requests to Trumpet.</p>
 <h1 id="authors">Authors</h1>
+<p>The initial authors of Trumpet are: </p>
 <ul>
 <li><a href="https://github.com/killerwhile">Benoit Perroud</a></li>
 <li><a href="https://github.com/hariprasad-k">Hari Kuppuswamy</a></li>
 <li><a href="https://github.com/psilvaro">Paula Morais</a></li>
 </ul>
+<h3 id="notes">Notes</h3>
+<p>Cloudera <a href="https://github.com/cloudera/hadoop-common/commit/15b703c8725733b7b2813d2325659eb7d57e7a3f">reverted</a> <a href="https://issues.apache.org/jira/browse/HDFS-7929">HDFS-7929</a> in <a href="http://www.cloudera.com/content/cloudera/en/documentation/core/latest/topics/cdh_rn_fixed_in_542.html">CDH 5.4.2</a> because of issues with INotify in rolling upgrades.</p>
             </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="changelog/" class="btn btn-neutral float-right" title="Changelog"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="architecture/" class="btn btn-neutral float-right" title="How it works"/>Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
     </div>
@@ -215,13 +258,13 @@ for how to send patches and pull requests to Trumpet.</p>
     <span class="rst-current-version" data-toggle="rst-current-version">
         
       <span><a href="" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      <span style="margin-left: 15px"><a href="changelog/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span style="margin-left: 15px"><a href="architecture/" style="color: #fcfcfc">Next &raquo;</a></span>
     </span>
 </div>
 
 <!--
 MkDocs version  : 0.12.2
-Docs Build Date : 2015-06-03 12:46:44.547384
+Docs Build Date : 2015-06-04 06:44:55.575896
 -->
 </body>
 </html>

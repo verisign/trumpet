@@ -86,6 +86,9 @@
                         <li class="toctree-l3"><a href="#workers-status">Workers status</a></li>
                         
                     
+                        <li class="toctree-l3"><a href="#typical-failure-illustrated">Typical Failure Illustrated</a></li>
+                        
+                    
                     </ul>
                 
             </li>
@@ -138,7 +141,8 @@
 </div>
           <div role="main">
             <div class="section">
-              <p>To operate Trumpet on a day-to-day basis, tools are provided to help to understand what's going on in Trumpet</p>
+              <p>To operate Trumpet on a day-to-day basis, tools are provided to help to understand quickly what's going on in Trumpet. 
+And please keep in mind that all the tools are <code>--help</code> friendly, so abuse of the help!</p>
 <h2 id="validate-correctness-and-completeness">Validate correctness and completeness</h2>
 <p>A tool is provided which goes back in time as much it can both in the kafka topic and <code>dfs.*.name.dir</code> 
 and validate that all the transactions in the edit log dir are in Kafka and match:</p>
@@ -150,10 +154,43 @@ and validate that all the transactions in the edit log dir are in Kafka and matc
 <pre><code>$ /opt/trumpet/server/bin/peek-events.sh --zk.connect &lt;zk_ip:2181&gt; --numofevents 100
 </code></pre>
 
+<p>If <code>com.verisign.vscc.hdfs.trumpet.server.tool.PeekInotifyEvents</code> logger is in debug mode, complete event is dumped into the command line. 
+Really usefull for debugging, while this might be noisy.</p>
 <h2 id="workers-status">Workers status</h2>
 <p>An utility is also provided to display the running Trumpet workers as well as which one is the leader</p>
-<pre><code>$ /opt/trumpet/server/bin/list-trumpet-workers.sh --zk.connect &lt;zk_ip:2181&gt;
+<pre><code>$ /opt/trumpet/server/bin/status.sh --zk.connect &lt;zk_ip:2181&gt;
 </code></pre>
+
+<h2 id="typical-failure-illustrated">Typical Failure Illustrated</h2>
+<ul>
+<li>Trumpet Server #1:</li>
+</ul>
+<pre><code>2015-06-04 03:11:53.565 DEBUG [Curator-LeaderSelector-0] c.v.v.h.t.s.rx.EditLogObservable - Processed 104 tx and streamed 80 events to the observer. Started at 2154122762 to last decoded txId 2154122865
+...
+2015-06-04 03:11:54.280 WARN [Curator-LeaderSelector-0] c.v.v.h.trumpet.server.TrumpetLeader - Got exception. Releasing leadership.
+</code></pre>
+
+<p>BAM, died, for whatever reason. Last transaction published is 2154122865</p>
+<ul>
+<li>Trumpet Server #2:</li>
+</ul>
+<p>Few miliseconds later, this Trumpet server intance takes over, starting from 2154122866
+                                                                             2154105374</p>
+<pre><code>2015-06-04 03:11:54.530 DEBUG [Curator-LeaderSelector-0] c.v.v.h.trumpet.server.TrumpetLeader - Elected as leader, let's stream!
+2015-06-04 03:11:54.595 DEBUG [Curator-LeaderSelector-0] c.v.v.h.trumpet.server.TrumpetLeader - Retrieved lastPublishedTxId: 2154122865
+2015-06-04 03:11:54.661 DEBUG [Curator-LeaderSelector-0] c.v.v.h.trumpet.server.TrumpetLeader - Reading editLog file /.../dfs/jn/journalhdfs1/current/edits_0000000002154116241-0000000002154123044 from tx 2154122866
+</code></pre>
+
+<p>Running the events-validator, as HDFS, to ensure that not transactions have been lost in between</p>
+<pre><code>$ /opt/trumpet/server/bin/events-validator.sh --zk.connect ${zkConnect} --numevents 200000 --dfs.edits.dir /.../dfs/jn
+Processing /app2/dfs/jn/journalhdfs1/current/edits_0000000002154094680-0000000002154105842 from tx 2154105374
+Processing /app2/dfs/jn/journalhdfs1/current/edits_0000000002154105843-0000000002154116240 from tx 2154105843
+...
+Good, kafka topic hdfs.inotify.events and edit.log.dir com.verisign.vscc.hdfs.trumpet.server.editlog.EditLogDir[/.../dfs/jn/journalhdfs1/current] look consistent.
+
+</code></pre>
+
+<p>Allright, no transaction lost!</p>
             </div>
           </div>
           <footer>
@@ -196,7 +233,7 @@ and validate that all the transactions in the edit log dir are in Kafka and matc
 
 <!--
 MkDocs version  : 0.12.2
-Docs Build Date : 2015-06-04 06:51:29.434325
+Docs Build Date : 2015-06-05 12:17:30.361933
 -->
 </body>
 </html>

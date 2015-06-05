@@ -63,8 +63,6 @@
                     
                         <li class="toctree-l3"><a href="#authors">Authors</a></li>
                         
-                            <li><a class="toctree-l4" href="#notes">Notes</a></li>
-                        
                     
                     </ul>
                 
@@ -150,7 +148,7 @@
 </div>
           <div role="main">
             <div class="section">
-              <p>Trumpet is an highly-available, fault-tolerant, non intrusive and scalable<br />
+              <p>Trumpet is an highly-available, fault-tolerant, non intrusive and scalable 
 <a href="http://en.wikipedia.org/wiki/Inotify">INotify</a>-like building block for Hadoop <a href="http://hadoop.apache.org/">HDFS</a>.</p>
 <hr />
 <h1 id="context">Context</h1>
@@ -159,7 +157,7 @@ When doing so, one of the challenge is to replicate the data from one side to an
 the right trade-offs between the time before the data is replicated 
 and impact on the existing infrastructure.</p>
 <p>This project originated from work at <a href="https://www.verisigninc.com">VeriSign</a> and presented at <a href="http://2014.hadoopsummit.org/">Hadoop Summit Amsterdam in 2014</a> 
-(Hadoop Event Notification System, see <a href="http://hortonworks.com/blog/congrats-hadoop-summit-community-choice-winners/">http://hortonworks.com/blog/congrats-hadoop-summit-community-choice-winners/</a>).<br />
+(Hadoop Event Notification System, see <a href="http://hortonworks.com/blog/congrats-hadoop-summit-community-choice-winners/">http://hortonworks.com/blog/congrats-hadoop-summit-community-choice-winners/</a>). 
 It in turn brought inspiration to the community to build the HDFS-INotify building block, 
 known as <a href="https://issues.apache.org/jira/browse/HDFS-6634">HDFS-6634</a> and <a href="https://issues.apache.org/jira/browse/HDFS-7446">HDFS-7446</a>.</p>
 <p>But HDFS-INotify is <em>intrusive</em> to the NameNode by design, i.e. it's built as an RPC command hitting directly the NameNode. 
@@ -171,13 +169,14 @@ running a more decoupled version of HDFS-INotify would probably be preferred (se
 <h1 id="features">Features</h1>
 <p>Trumpet put a strong focus on the following areas:</p>
 <ul>
-<li><strong>Scalable</strong> -- relies on <a href="http://kafka.apache.org">Kafka</a> for event distribution,</li>
+<li><strong>Scalable</strong> -- relies on <a href="http://kafka.apache.org">Kafka</a> for events distribution,</li>
 <li><strong>Non intrusive</strong> with low footprint -- runs alongside (and not in) the NameNode</li>
 <li><strong>Highly available</strong> and <strong>fault tolerant</strong> -- several instances run a leader election in <a href="http://zookeeper.apache.org">Zookeeper</a> and recover from previous state,</li>
 <li><strong>Rolling upgrade</strong> ready -- knows how to deal with HDFS rolling upgrade,</li>
-<li><strong>Easy</strong> -- writes client application is trivial,</li>
+<li><strong>Simple</strong> -- writes your own client application in seconds,</li>
 <li><strong>Ops friendly</strong> -- provides tools to ensure completeness and correctness of the broadcast.</li>
-<li><strong>Compatibility</strong> -- runs on Hadoop 2.6, 2.7, HDP 2 and CDH 5</li>
+<li><strong>Compatibility</strong> -- runs on Hadoop 2.6, 2.7, HDP 2.2 and CDH 5,</li>
+<li><strong>Near realtime</strong> -- detects new files within miliseconds.</li>
 </ul>
 <p>To dig into Trumpet's features and how this works, please go to the <a href="./architecture/">architecture</a> page.</p>
 <h1 id="quickstart">Quickstart</h1>
@@ -198,11 +197,12 @@ running a more decoupled version of HDFS-INotify would probably be preferred (se
 <pre><code class="xml">        &lt;dependency&gt;
             &lt;groupId&gt;com.verisign.vscc.trumpet&lt;/groupId&gt;
             &lt;artifactId&gt;client&lt;/artifactId&gt;
-            &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+            &lt;version&gt;${trumpet.version}&lt;/version&gt;
         &lt;/dependency&gt;
 </code></pre>
 
-<p>It's as easy as using an <a href="https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html">Iterable</a>.</p>
+<p>Hint: the versions follow carefully the tags naming convention. Looks at the available tags in the project to get the version.</p>
+<p>Now it's as easy as using a Java <a href="https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html">Iterable</a>.</p>
 <pre><code class="java">String kafkaTopic = ...
 String zkConnect = ...
 for (Map&lt;String, Object&gt; event : new TrumpetEventStreamer(zkConnect, kafkaTopic)) {
@@ -222,7 +222,10 @@ for how to send patches and pull requests to Trumpet.</p>
 <li><a href="https://github.com/hariprasad-k">Hari Kuppuswamy</a></li>
 <li><a href="https://github.com/psilvaro">Paula Morais</a></li>
 </ul>
-<h3 id="notes">Notes</h3>
+<p>And special thanks to <a href="https://issues.apache.org/jira/secure/ViewProfile.jspa?name=james.thomas">James Thomas</a> 
+and <a href="https://issues.apache.org/jira/secure/ViewProfile.jspa?name=cmccabe">Colin Patrick McCabe</a> 
+who wrote the community version of HDFS INotify.</p>
+<p><a id="notes"><em>Notes</em></a></p>
 <p>Cloudera <a href="https://github.com/cloudera/hadoop-common/commit/15b703c8725733b7b2813d2325659eb7d57e7a3f">reverted</a> <a href="https://issues.apache.org/jira/browse/HDFS-7929">HDFS-7929</a> in <a href="http://www.cloudera.com/content/cloudera/en/documentation/core/latest/topics/cdh_rn_fixed_in_542.html">CDH 5.4.2</a> because of issues with INotify in rolling upgrades.</p>
             </div>
           </div>
@@ -264,7 +267,7 @@ for how to send patches and pull requests to Trumpet.</p>
 
 <!--
 MkDocs version  : 0.12.2
-Docs Build Date : 2015-06-04 06:51:29.338656
+Docs Build Date : 2015-06-05 12:17:30.243068
 -->
 </body>
 </html>

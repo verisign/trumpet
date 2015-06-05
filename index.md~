@@ -1,5 +1,5 @@
 
-Trumpet is an highly-available, fault-tolerant, non intrusive and scalable  
+Trumpet is an highly-available, fault-tolerant, non intrusive and scalable 
 [INotify](http://en.wikipedia.org/wiki/Inotify)-like building block for Hadoop [HDFS](http://hadoop.apache.org/).
 
 ---
@@ -12,7 +12,7 @@ the right trade-offs between the time before the data is replicated
 and impact on the existing infrastructure.
 
 This project originated from work at [VeriSign](https://www.verisigninc.com) and presented at [Hadoop Summit Amsterdam in 2014](http://2014.hadoopsummit.org/) 
-(Hadoop Event Notification System, see [http://hortonworks.com/blog/congrats-hadoop-summit-community-choice-winners/](http://hortonworks.com/blog/congrats-hadoop-summit-community-choice-winners/)).  
+(Hadoop Event Notification System, see [http://hortonworks.com/blog/congrats-hadoop-summit-community-choice-winners/](http://hortonworks.com/blog/congrats-hadoop-summit-community-choice-winners/)). 
 It in turn brought inspiration to the community to build the HDFS-INotify building block, 
 known as [HDFS-6634](https://issues.apache.org/jira/browse/HDFS-6634) and [HDFS-7446](https://issues.apache.org/jira/browse/HDFS-7446).
 
@@ -29,13 +29,14 @@ So was born the project called Trumpet, in reference of the noise the elephant i
 
 Trumpet put a strong focus on the following areas:
 
-* **Scalable** -- relies on [Kafka](http://kafka.apache.org) for event distribution,
+* **Scalable** -- relies on [Kafka](http://kafka.apache.org) for events distribution,
 * **Non intrusive** with low footprint -- runs alongside (and not in) the NameNode
 * **Highly available** and **fault tolerant** -- several instances run a leader election in [Zookeeper](http://zookeeper.apache.org) and recover from previous state,
 * **Rolling upgrade** ready -- knows how to deal with HDFS rolling upgrade,
-* **Easy** -- writes client application is trivial,
+* **Simple** -- writes your own client application in seconds,
 * **Ops friendly** -- provides tools to ensure completeness and correctness of the broadcast.
-* **Compatibility** -- runs on Hadoop 2.6, 2.7, HDP 2 and CDH 5
+* **Compatibility** -- runs on Hadoop 2.6, 2.7, HDP 2.2 and CDH 5,
+* **Near realtime** -- detects new files within miliseconds.
 
 To dig into Trumpet's features and how this works, please go to the [architecture](architecture/) page.
 
@@ -59,17 +60,20 @@ For more details about the server side, please go to the [installation](installa
 ## Client Application
 
 Add the dependency to the Trumpet client in your project
-```
+```xml
         <dependency>
             <groupId>com.verisign.vscc.trumpet</groupId>
             <artifactId>client</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>${trumpet.version}</version>
         </dependency>
 ```
 
-It's as easy as using an [Iterable](https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html).
+Hint: the versions follow carefully the tags naming convention. Looks at the available tags in the project to get the version.
 
-```
+
+Now it's as easy as using a Java [Iterable](https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html).
+
+```java
 String kafkaTopic = ...
 String zkConnect = ...
 for (Map<String, Object> event : new TrumpetEventStreamer(zkConnect, kafkaTopic)) {
@@ -96,7 +100,12 @@ The initial authors of Trumpet are:
 * [Hari Kuppuswamy](https://github.com/hariprasad-k)
 * [Paula Morais](https://github.com/psilvaro)
 
+And special thanks to [James Thomas](https://issues.apache.org/jira/secure/ViewProfile.jspa?name=james.thomas) 
+and [Colin Patrick McCabe](https://issues.apache.org/jira/secure/ViewProfile.jspa?name=cmccabe) 
+who wrote the community version of HDFS INotify.
 
-### Notes
+
+#### Notes
 
 Cloudera [reverted](https://github.com/cloudera/hadoop-common/commit/15b703c8725733b7b2813d2325659eb7d57e7a3f) [HDFS-7929](https://issues.apache.org/jira/browse/HDFS-7929) in [CDH 5.4.2](http://www.cloudera.com/content/cloudera/en/documentation/core/latest/topics/cdh_rn_fixed_in_542.html) because of issues with INotify in rolling upgrades.
+

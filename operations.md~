@@ -1,5 +1,6 @@
 
-To operate Trumpet on a day-to-day basis, tools are provided to help to understand what's going on in Trumpet
+To operate Trumpet on a day-to-day basis, tools are provided to help to understand quickly what's going on in Trumpet. 
+And please keep in mind that all the tools are `--help` friendly, so abuse of the help!
 
 
 ## Validate correctness and completeness
@@ -11,6 +12,7 @@ and validate that all the transactions in the edit log dir are in Kafka and matc
 $ /opt/trumpet/server/bin/events-validator.sh --zk.connect <zk_ip:2181> --dfs.edits.dir <root_dir_where_edits_files_are_stored> --numofevents 1000000
 ```
 
+
 ## Peek Kafka topic
 
 At any time, you can peek the Kafka topic, i.e. retrieve and display in a console the _n_ latest messages:
@@ -19,23 +21,48 @@ At any time, you can peek the Kafka topic, i.e. retrieve and display in a consol
 $ /opt/trumpet/server/bin/peek-events.sh --zk.connect <zk_ip:2181> --numofevents 100
 ```
 
-## Workers status
+
+## Workers status (TBD)
 
 An utility is also provided to display the running Trumpet workers as well as which one is the leader
 
 ```
-$ /opt/trumpet/server/bin/list-trumpet-workers.sh --zk.connect <zk_ip:2181>
+$ /opt/trumpet/server/bin/status.sh --zk.connect <zk_ip:2181>
 ```
 
 
-## Use it
+## Typical Failure Illustrated
 
-Trumpet comes out as a new building block in the Hadoop ecosystem 
-and unleashes brand new capabilities to HDFS. As it relies mostly on Kafka 
-for the distribution of the events to the clients, it scales pretty well.
+* Trumpet Server #1:
 
-One really promising use-case built on top of Trumpet in near-real time data replication 
-from a source HDFS cluster to a destination HDFS cluster.
+```
+2015-06-04 03:11:53.565 DEBUG [Curator-LeaderSelector-0] c.v.v.h.t.s.rx.EditLogObservable - Processed 104 tx and streamed 80 events to the observer. Started at 2154122762 to last decoded txId 2154122865
+...
+2015-06-04 03:11:54.280 WARN [Curator-LeaderSelector-0] c.v.v.h.trumpet.server.TrumpetLeader - Got exception. Releasing leadership.
+```
 
-TODO: other use-cases here
+BAM, died, for whatever reason. Last transaction published is 2154122865
+
+* Trumpet Server #2:
+
+Few miliseconds later, this Trumpet server intance takes over, starting from 2154122866
+                                                                             2154105374
+```
+2015-06-04 03:11:54.530 DEBUG [Curator-LeaderSelector-0] c.v.v.h.trumpet.server.TrumpetLeader - Elected as leader, let's stream!
+2015-06-04 03:11:54.595 DEBUG [Curator-LeaderSelector-0] c.v.v.h.trumpet.server.TrumpetLeader - Retrieved lastPublishedTxId: 2154122865
+2015-06-04 03:11:54.661 DEBUG [Curator-LeaderSelector-0] c.v.v.h.trumpet.server.TrumpetLeader - Reading editLog file /.../dfs/jn/journalhdfs1/current/edits_0000000002154116241-0000000002154123044 from tx 2154122866
+```
+
+Running the events-validator, as HDFS, to ensure that not transactions have been lost in between
+
+```
+$ /opt/trumpet/server/bin/events-validator.sh --zk.connect ${zkConnect} --numevents 200000 --dfs.edits.dir /.../dfs/jn
+Processing /app2/dfs/jn/journalhdfs1/current/edits_0000000002154094680-0000000002154105842 from tx 2154105374
+Processing /app2/dfs/jn/journalhdfs1/current/edits_0000000002154105843-0000000002154116240 from tx 2154105843
+...
+Good, kafka topic hdfs.inotify.events and edit.log.dir com.verisign.vscc.hdfs.trumpet.server.editlog.EditLogDir[/.../dfs/jn/journalhdfs1/current] look consistent.
+
+```
+
+Allright, no transaction lost!
 

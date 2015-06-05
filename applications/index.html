@@ -144,18 +144,19 @@
               <p>Trumpet comes out as a new building block in the Hadoop ecosystem 
 and unleashes brand new capabilities to HDFS. As it relies mostly on Kafka 
 for the distribution of the events to the clients, it scales pretty well.</p>
-<p>Here are the steps to let you write your own client applications:</p>
+<p>Below are the steps to let you simply and quickly write your own client applications:</p>
 <h2 id="dependency">Dependency</h2>
 <p>Add the dependency to the Trumpet client in your project</p>
 <pre><code class="xml">        &lt;dependency&gt;
             &lt;groupId&gt;com.verisign.vscc.trumpet&lt;/groupId&gt;
             &lt;artifactId&gt;client&lt;/artifactId&gt;
-            &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+            &lt;version&gt;${trumpet.version}&lt;/version&gt;
         &lt;/dependency&gt;
 </code></pre>
 
+<p>Hint: the versions follow carefully the tags naming convention. Looks at the available tags in the project to get the version.</p>
 <h2 id="use-it">Use it</h2>
-<p>Now it's as easy as using an <a href="https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html">Iterable</a>.</p>
+<p>Now it's as easy as using a Java <a href="https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html">Iterable</a>.</p>
 <pre><code class="java">String kafkaTopic = ...
 String zkConnect = ...
 for (Map&lt;String, Object&gt; event : new TrumpetEventStreamer(zkConnect, kafkaTopic)) {
@@ -164,7 +165,318 @@ for (Map&lt;String, Object&gt; event : new TrumpetEventStreamer(zkConnect, kafka
 </code></pre>
 
 <h2 id="events-format">Events Format</h2>
-<p>TODO!</p>
+<p>The events published into Kakfa are JSON dictionary. The rationale behind that is discussed <a href="../architecture/#events-as-json-dictionary">here</a>.</p>
+<p>Events taken into account are basically all events modifying the NameNode <a href="">org.apache.hadoop.hdfs.server.namenode.INodeDirectory</a> in-memory structure. 
+The exhaustive list is given below, and they are regrouped in 6 event types: <code>CREATE</code>, <code>CLOSE</code>, <code>APPEND</code>, <code>RENAME</code>, <code>METADATA</code>, <code>UNLINK</code>:</p>
+<ul>
+<li>Add -- either <code>CREATE</code> or <code>APPEND</code></li>
+<li>Close -- <code>CLOSE</code></li>
+<li>Set Replication -- <code>METADATA</code></li>
+<li>ConcatDelete -- create a sequence of <code>APPEND</code>, <code>UNLINK</code> and <code>CLOSE</code>, but all with the same <code>txId</code></li>
+<li>RenameOld -- <code>RENAME</code></li>
+<li>Rename -- <code>RENAME</code></li>
+<li>Delete -- <code>UNLINK</code></li>
+<li>Mkdir -- <code>CREATE</code></li>
+<li>SetPermissions -- <code>METADATA</code></li>
+<li>SetOwner -- <code>METADATA</code></li>
+<li>Times -- <code>METADATA</code></li>
+<li>Symlink -- <code>CREATE</code></li>
+<li>RemoveXAttr -- <code>METADATA</code></li>
+<li>SetXAttr -- <code>METADATA</code></li>
+<li>SetAcl -- <code>METADATA</code></li>
+</ul>
+<p>Find more details about the operation decoding and translation in the class <a href="">org.apache.hadoop.hdfs.server.namenode.InotifyFSEditLogOpTranslator</a> 
+and <a href="">org.apache.hadoop.hdfs.inotify.Event</a>.</p>
+<p>The available attributes in the JSON dict per event types are described below.</p>
+<ul>
+<li><code>APPEND</code></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Attribute name</th>
+<th align="center">Mandatory</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>txId</td>
+<td align="center">Yes</td>
+<td>transaction Id</td>
+</tr>
+<tr>
+<td>eventType</td>
+<td align="center">APPEND</td>
+<td>type of event.</td>
+</tr>
+<tr>
+<td>path</td>
+<td align="center"></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>CLOSE</code></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Attribute name</th>
+<th align="center">Mandatory</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>txId</td>
+<td align="center">Yes</td>
+<td>transaction Id</td>
+</tr>
+<tr>
+<td>eventType</td>
+<td align="center">CLOSE</td>
+<td>type of event.</td>
+</tr>
+<tr>
+<td>path</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>fileSize</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>timestamp</td>
+<td align="center"></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>CREATE</code></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Attribute name</th>
+<th align="center">Mandatory</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>txId</td>
+<td align="center">Yes</td>
+<td>transaction Id</td>
+</tr>
+<tr>
+<td>eventType</td>
+<td align="center">CREATE</td>
+<td>type of event.</td>
+</tr>
+<tr>
+<td>iNodeType</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>path</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>ctime</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>replication</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>ownerName</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>groupName</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>perms</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>symlinkTarget</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>overwrite</td>
+<td align="center"></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>METADATA</code></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Attribute name</th>
+<th align="center">Mandatory</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>txId</td>
+<td align="center">Yes</td>
+<td>transaction Id</td>
+</tr>
+<tr>
+<td>eventType</td>
+<td align="center">METADATA</td>
+<td>type of event.</td>
+</tr>
+<tr>
+<td>path</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>metadataType</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>mtime</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>atime</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>replication</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>ownerName</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>groupName</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>perms</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>acls</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>xAttrs</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>xAttrsRemoved</td>
+<td align="center"></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>RENAME</code></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Attribute name</th>
+<th align="center">Mandatory</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>txId</td>
+<td align="center">Yes</td>
+<td>transaction Id</td>
+</tr>
+<tr>
+<td>eventType</td>
+<td align="center">RENAME</td>
+<td>type of event.</td>
+</tr>
+<tr>
+<td>srcPath</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>dstPath</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>timestamp</td>
+<td align="center"></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>UNLINK</code></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Attribute name</th>
+<th align="center">Mandatory</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>txId</td>
+<td align="center">Yes</td>
+<td>transaction Id</td>
+</tr>
+<tr>
+<td>eventType</td>
+<td align="center">UNLINK</td>
+<td>type of event.</td>
+</tr>
+<tr>
+<td>path</td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr>
+<td>timestamp</td>
+<td align="center"></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 <h2 id="example-application">Example Application</h2>
 <p><code>com.verisign.vscc.hdfs.trumpet.client.example.TestApp</code> is a sample application, listening to Trumpet and filtering out 
 <code>_SUCCESS</code> files, indicating the success of a MapReduce application.</p>
@@ -211,7 +523,7 @@ for (Map&lt;String, Object&gt; event : new TrumpetEventStreamer(zkConnect, kafka
 
 <!--
 MkDocs version  : 0.12.2
-Docs Build Date : 2015-06-04 06:51:29.428790
+Docs Build Date : 2015-06-05 12:17:30.354892
 -->
 </body>
 </html>

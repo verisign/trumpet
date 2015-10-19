@@ -148,7 +148,7 @@
             <div class="section">
               
                 <h1 id="project-structure">Project structure</h1>
-<p>The current project is composed of 3 sub-projects:</p>
+<p>The current project is composed of 4 sub-projects:</p>
 <ol>
 <li>
 <p><a href="../../common"><code>common</code></a><br />
@@ -156,12 +156,12 @@
 </li>
 <li>
 <p><a href="../../server"><code>server</code></a><br />
-  Trumpet server. Build this project to <a href="#Build_it">deploy and run Trumpet</a></p>
+  Trumpet server, i.e. reading the hdfs edits log files. Build this project to <a href="#Build_it">deploy and run Trumpet</a></p>
 </li>
 <li>
 <p><a href="../../client"><code>client</code></a><br />
   Example of client application, reading from Kakfa and doing someting meaningful. This sub-project also
-  contains the required dependencies to write <a href="../appliations">client applications</a>.</p>
+  contains the required dependencies to write <a href="../applications">client applications</a>.</p>
 </li>
 <li>
 <p><a href="../../docs"><code>docs</code></a><br />
@@ -179,10 +179,6 @@ you have java and maven installed, and then: </p>
 <li><code>-Phadoop26</code> (default), <code>-Phadoop27</code>, <code>-Pcdh52</code>, <code>-Pcdh53</code>, <code>-Pcdh54</code> or <code>-Phdp22</code>. See <a href="#Compatibility">Compatibility</a> for details.</li>
 <li><code>-DrpmRelease=1</code> to change the RPM build release number. See <a href="#RPM">RPM</a> for details.</li>
 </ul>
-<p>Put all together, if you just want to build a specific version of the server, you can do</p>
-<pre><code class="bash">mvn build-helper:parse-version rpm:attached-rpm -Phadoop27 -f server
-</code></pre>
-
 <h2 id="rpm">RPM</h2>
 <p>Running <code>mvn package</code> (included in the <code>install</code> goal) will generate an RPM. <code>find server/target -name "*.rpm"</code> to list 
 the exact path and name of the server RPM.</p>
@@ -207,7 +203,11 @@ or <a href="https://github.com/jordansissel/fpm">https://github.com/jordansissel
      -- stderr
 </code></pre>
 
-<p>While building Trumpet, you can add <code>-DrpmRelease=123</code> as a maven command parameter to change the RPM build number (by default <em>-1</em>)</p>
+<p>While building Trumpet, you can add <code>-DrpmRelease=123</code> as a maven command parameter to change the RPM build number (by default <em>1</em>)</p>
+<p>Note: if you just want to build a specific version of the server RPM, without rebuilding everything, you need to run the following:</p>
+<pre><code class="bash">mvn build-helper:parse-version rpm:attached-rpm -Phadoop27 -DrpmRelease=123 -f server
+</code></pre>
+
 <h2 id="compatibility">Compatibility</h2>
 <p><a href="https://issues.apache.org/jira/browse/HDFS-7446">HDFS-7446</a>, released as part of 
 <a href="https://github.com/aw-altiscale/eco-release-metadata/blob/master/HADOOP/2.7.0/RELEASENOTES.2.7.0.md">Hadoop 2.7.0 release</a>, 
@@ -219,7 +219,7 @@ which uses reflection to work around compatibility issues.</p>
 <li>Hadoop 2.6 -- <code>mvn clean install -Phadoop26</code> (default)</li>
 <li>Hadoop 2.7 -- <code>mvn clean install -Phadoop27</code></li>
 <li>CDH 5 -- <code>mvn clean install -Pcdh52</code>, <code>mvn clean install -Pcdh53</code> or <code>mvn clean install -Pcdh54</code></li>
-<li>HDP 2.2 -- <code>mvn clean install -Phdp22</code></li>
+<li>HDP 2.2, 2.3 -- <code>mvn clean install -Phdp22</code>, <code>mvn clean install -Phdp23</code></li>
 </ul>
 <h1 id="run-it">Run it</h1>
 <p>Trumpet server is a long running process to run alongside the JournalNode. A <a href="http://www.supervisord.org">supervisord</a> 

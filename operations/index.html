@@ -190,12 +190,15 @@ how many offset (i.e, inotify events) arrived in the topic:</p>
 </code></pre>
 
 <h2 id="graphite-integration">Graphite Integration</h2>
-<p>Trumpet relies on the awesome <a href="https://dropwizard.github.io/metrics/">Metics library</a> to collect metrics, 
+<p>Trumpet relies on the awesome <a href="http://metrics.dropwizard.io/">Metics library</a> to collect metrics, 
 like the transactionId actually processed, the number of event per seconds
-published into Kafka, since when the current daemon is leader, ... See <a href="../...Metrics.java">Metrics</a> for more details.</p>
+published into Kafka, since when the current daemon is leader, ... 
+See the <a href="../../server/src/main/java/com/verisign/vscc/hdfs/trumpet/server/metrics/Metrics.java">Metrics</a> 
+class for more details.</p>
 <p>To reports these metrics in <a href="http://graphite.wikidot.com/">Graphite</a> (or compatible graphite collectors), simply 
 run <code>trumpet.sh</code> with <code>--graphite.server.hostport &lt;host&gt;:&lt;port&gt;</code> and you're all set. <code>&lt;port&gt;</code> is optional and is defaulted 
-to 2003.</p>
+to 2003. <code>--graphite.prefix</code> can change the prefix of the metric reported in graphite, by default <code>trumpet.&lt;hostname&gt;</code>.</p>
+<p>// TODO&gt; Graph examples here.</p>
 <h2 id="typical-failure-illustrated">Typical Failure Illustrated</h2>
 <ul>
 <li>Trumpet Server #1:</li>

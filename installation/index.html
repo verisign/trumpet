@@ -17,6 +17,12 @@
   <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="../css/highlight.css">
 
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "I want it!";
+  </script>
+  
   <script src="../js/jquery-2.1.1.min.js"></script>
   <script src="../js/modernizr-2.8.3.min.js"></script>
   <script type="text/javascript" src="../js/highlight.pack.js"></script>
@@ -33,87 +39,83 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
       <div class="wy-side-nav-search">
         <a href=".." class="icon icon-home"> Trumpet</a>
-        
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-      <ul class="current">
-    
+        <ul class="current">
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="..">What is Trumpet</a>
         
-            <li class="toctree-l1 ">
-                <a class="" href="..">What is Trumpet</a>
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../architecture/">How it works</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">I want it!</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#project-structure">Project structure</a></li>
                 
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 ">
-                <a class="" href="../architecture/">How it works</a>
+            
+                <li class="toctree-l3"><a href="#build-it">Build it</a></li>
                 
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 current">
-                <a class="current" href="./">I want it!</a>
+                    <li><a class="toctree-l4" href="#rpm">RPM</a></li>
                 
-                    <ul>
-                    
-                        <li class="toctree-l3"><a href="#project-structure">Project structure</a></li>
-                        
-                    
-                        <li class="toctree-l3"><a href="#build-it">Build it</a></li>
-                        
-                            <li><a class="toctree-l4" href="#rpm">RPM</a></li>
-                        
-                            <li><a class="toctree-l4" href="#compatibility">Compatibility</a></li>
-                        
-                    
-                        <li class="toctree-l3"><a href="#run-it">Run it</a></li>
-                        
-                    
-                    </ul>
+                    <li><a class="toctree-l4" href="#compatibility">Compatibility</a></li>
                 
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 ">
-                <a class="" href="../applications/">Write your Apps</a>
+            
+                <li class="toctree-l3"><a href="#run-it">Run it</a></li>
                 
-            </li>
+            
+            </ul>
         
-
-    
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../applications/">Write your Apps</a>
         
-            <li class="toctree-l1 ">
-                <a class="" href="../operations/">For DevOps</a>
-                
-            </li>
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../operations/">For DevOps</a>
         
-
-    
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../changelog/">Changelog</a>
         
-            <li class="toctree-l1 ">
-                <a class="" href="../changelog/">Changelog</a>
-                
-            </li>
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../license/">License</a>
         
-
-    
-        
-            <li class="toctree-l1 ">
-                <a class="" href="../license/">License</a>
-                
-            </li>
-        
-
-    
-</ul>
-
+    </li>
+<li>
+          
+        </ul>
       </div>
       &nbsp;
     </nav>
@@ -133,16 +135,19 @@
   <ul class="wy-breadcrumbs">
     <li><a href="..">Docs</a> &raquo;</li>
     
+      
+    
     <li>I want it!</li>
-      <li class="wy-breadcrumbs-aside">
-        
-      </li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
   </ul>
   <hr/>
 </div>
           <div role="main">
             <div class="section">
-              <h1 id="project-structure">Project structure</h1>
+              
+                <h1 id="project-structure">Project structure</h1>
 <p>The current project is composed of 3 sub-projects:</p>
 <ol>
 <li>
@@ -174,6 +179,10 @@ you have java and maven installed, and then: </p>
 <li><code>-Phadoop26</code> (default), <code>-Phadoop27</code>, <code>-Pcdh52</code>, <code>-Pcdh53</code>, <code>-Pcdh54</code> or <code>-Phdp22</code>. See <a href="#Compatibility">Compatibility</a> for details.</li>
 <li><code>-DrpmRelease=1</code> to change the RPM build release number. See <a href="#RPM">RPM</a> for details.</li>
 </ul>
+<p>Put all together, if you just want to build a specific version of the server, you can do</p>
+<pre><code class="bash">mvn build-helper:parse-version rpm:attached-rpm -Phadoop27 -f server
+</code></pre>
+
 <h2 id="rpm">RPM</h2>
 <p>Running <code>mvn package</code> (included in the <code>install</code> goal) will generate an RPM. <code>find server/target -name "*.rpm"</code> to list 
 the exact path and name of the server RPM.</p>
@@ -184,6 +193,7 @@ or <a href="https://github.com/jordansissel/fpm">https://github.com/jordansissel
   +- bin/
   |  +- events-validator.sh
   |  +- peek-events.sh
+  |  +- status.sh
   |  -- trumpet.sh
   +- conf/
   |  -- logback-production.xml
@@ -232,6 +242,9 @@ sudo vi /etc/supervisord.d/trumpet-server.ini # update &lt;zk_ip:2181&gt; and po
 sudo supervisorctl reread
 sudo supervisorctl add trumpet # will start Trumpet as autostart is turned on
 </code></pre>
+
+<p>Note #3: all the scripts can be run with <code>--help</code> to get additional info</p>
+              
             </div>
           </div>
           <footer>
@@ -249,9 +262,8 @@ sudo supervisorctl add trumpet # will start Trumpet as autostart is turned on
   <hr/>
 
   <div role="contentinfo">
-    <p>
     <!-- Copyright etc -->
-    </p>
+    
   </div>
 
   Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -266,15 +278,15 @@ sudo supervisorctl add trumpet # will start Trumpet as autostart is turned on
 
 <div class="rst-versions" role="note" style="cursor: pointer">
     <span class="rst-current-version" data-toggle="rst-current-version">
-        
-      <span><a href="../architecture/" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      <span style="margin-left: 15px"><a href="../applications/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+      
+        <span><a href="../architecture/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../applications/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
     </span>
 </div>
 
-<!--
-MkDocs version  : 0.12.2
-Docs Build Date : 2015-06-08 14:32:03.849773
--->
 </body>
 </html>

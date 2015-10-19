@@ -17,6 +17,12 @@
   <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="../css/highlight.css">
 
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "For DevOps";
+  </script>
+  
   <script src="../js/jquery-2.1.1.min.js"></script>
   <script src="../js/modernizr-2.8.3.min.js"></script>
   <script type="text/javascript" src="../js/highlight.pack.js"></script>
@@ -33,86 +39,92 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
       <div class="wy-side-nav-search">
         <a href=".." class="icon icon-home"> Trumpet</a>
-        
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-      <ul class="current">
-    
+        <ul class="current">
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="..">What is Trumpet</a>
         
-            <li class="toctree-l1 ">
-                <a class="" href="..">What is Trumpet</a>
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../architecture/">How it works</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../installation/">I want it!</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../applications/">Write your Apps</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">For DevOps</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#validate-correctness-and-completeness">Validate correctness and completeness</a></li>
                 
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 ">
-                <a class="" href="../architecture/">How it works</a>
+            
+                <li class="toctree-l3"><a href="#peek-kafka-topic">Peek Kafka topic</a></li>
                 
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 ">
-                <a class="" href="../installation/">I want it!</a>
+            
+                <li class="toctree-l3"><a href="#workers-status">Workers status</a></li>
                 
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 ">
-                <a class="" href="../applications/">Write your Apps</a>
+            
+                <li class="toctree-l3"><a href="#kafka-tools">Kafka Tools</a></li>
                 
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 current">
-                <a class="current" href="./">For DevOps</a>
+                    <li><a class="toctree-l4" href="#getting-the-latest-offset">Getting the latest offset</a></li>
                 
-                    <ul>
-                    
-                        <li class="toctree-l3"><a href="#validate-correctness-and-completeness">Validate correctness and completeness</a></li>
-                        
-                    
-                        <li class="toctree-l3"><a href="#peek-kafka-topic">Peek Kafka topic</a></li>
-                        
-                    
-                        <li class="toctree-l3"><a href="#workers-status">Workers status</a></li>
-                        
-                    
-                        <li class="toctree-l3"><a href="#typical-failure-illustrated">Typical Failure Illustrated</a></li>
-                        
-                    
-                    </ul>
+                    <li><a class="toctree-l4" href="#peeking-kafka-topic">Peeking Kafka topic</a></li>
                 
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 ">
-                <a class="" href="../changelog/">Changelog</a>
+            
+                <li class="toctree-l3"><a href="#graphite-integration">Graphite Integration</a></li>
                 
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 ">
-                <a class="" href="../license/">License</a>
+            
+                <li class="toctree-l3"><a href="#typical-failure-illustrated">Typical Failure Illustrated</a></li>
                 
-            </li>
+            
+            </ul>
         
-
-    
-</ul>
-
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../changelog/">Changelog</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../license/">License</a>
+        
+    </li>
+<li>
+          
+        </ul>
       </div>
       &nbsp;
     </nav>
@@ -132,35 +144,58 @@
   <ul class="wy-breadcrumbs">
     <li><a href="..">Docs</a> &raquo;</li>
     
+      
+    
     <li>For DevOps</li>
-      <li class="wy-breadcrumbs-aside">
-        
-      </li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
   </ul>
   <hr/>
 </div>
           <div role="main">
             <div class="section">
-              <p>To operate Trumpet on a day-to-day basis, tools are provided to help to understand quickly what's going on in Trumpet. 
+              
+                <p>To operate Trumpet on a day-to-day basis, tools are provided to help to understand quickly what's going on in Trumpet. 
 And please keep in mind that all the tools are <code>--help</code> friendly, so abuse of the help!</p>
 <h2 id="validate-correctness-and-completeness">Validate correctness and completeness</h2>
 <p>A tool is provided which goes back in time as much it can both in the kafka topic and <code>dfs.*.name.dir</code> 
 and validate that all the transactions in the edit log dir are in Kafka and match:</p>
-<pre><code>$ /opt/trumpet/server/bin/events-validator.sh --zk.connect &lt;zk_ip:2181&gt; --dfs.edits.dir &lt;root_dir_where_edits_files_are_stored&gt; --numofevents 1000000
+<pre><code>$ /opt/trumpet/server/bin/events-validator.sh --zk.connect &lt;zk_ip:2181&gt; --dfs.edits.dir &lt;root_dir_where_edits_files_are_stored&gt; --numevents 1000000
 </code></pre>
 
 <h2 id="peek-kafka-topic">Peek Kafka topic</h2>
 <p>At any time, you can peek the Kafka topic, i.e. retrieve and display in a console the <em>n</em> latest messages:</p>
-<pre><code>$ /opt/trumpet/server/bin/peek-events.sh --zk.connect &lt;zk_ip:2181&gt; --numofevents 100
+<pre><code>$ /opt/trumpet/server/bin/peek-events.sh --zk.connect &lt;zk_ip:2181&gt; --numevents 100
 </code></pre>
 
 <p>If <code>com.verisign.vscc.hdfs.trumpet.server.tool.PeekInotifyEvents</code> logger is in debug mode, complete event is dumped into the command line. 
-Really usefull for debugging, while this might be noisy.</p>
+Really useful for debugging, while this might be noisy.</p>
 <h2 id="workers-status">Workers status</h2>
 <p>An utility is also provided to display the running Trumpet workers as well as which one is the leader</p>
 <pre><code>$ /opt/trumpet/server/bin/status.sh --zk.connect &lt;zk_ip:2181&gt;
 </code></pre>
 
+<h2 id="kafka-tools">Kafka Tools</h2>
+<p>You can also use <a href="https://cwiki.apache.org/confluence/display/KAFKA/System+Tools">plain Kafka tools</a> to find out if there are events flowing into the topic:</p>
+<h3 id="getting-the-latest-offset">Getting the latest offset</h3>
+<p>This tool will show you the latest (i.e, most recent) offest of the topic. Calling this function several time will let you show 
+how many offset (i.e, inotify events) arrived in the topic:</p>
+<pre><code>kafka-run-class kafka.tools.GetOffsetShell --broker-list &lt;broker:port&gt; --time -1 --topic hdfs.inotify.events
+</code></pre>
+
+<h3 id="peeking-kafka-topic">Peeking Kafka topic</h3>
+<p>Just like the <code>peek-events.sh</code> Trumpet tool, you can display the messages that arrives in the topic because they are plain JSON messages:</p>
+<pre><code>kafka-simple-consumer-shell --broker-list &lt;broker:port&gt; --topic hdfs.inotify.events --offset -1 --max-messages 5 --partition 0
+</code></pre>
+
+<h2 id="graphite-integration">Graphite Integration</h2>
+<p>Trumpet relies on the awesome <a href="https://dropwizard.github.io/metrics/">Metics library</a> to collect metrics, 
+like the transactionId actually processed, the number of event per seconds
+published into Kafka, since when the current daemon is leader, ... See <a href="../...Metrics.java">Metrics</a> for more details.</p>
+<p>To reports these metrics in <a href="http://graphite.wikidot.com/">Graphite</a> (or compatible graphite collectors), simply 
+run <code>trumpet.sh</code> with <code>--graphite.server.hostport &lt;host&gt;:&lt;port&gt;</code> and you're all set. <code>&lt;port&gt;</code> is optional and is defaulted 
+to 2003.</p>
 <h2 id="typical-failure-illustrated">Typical Failure Illustrated</h2>
 <ul>
 <li>Trumpet Server #1:</li>
@@ -174,8 +209,7 @@ Really usefull for debugging, while this might be noisy.</p>
 <ul>
 <li>Trumpet Server #2:</li>
 </ul>
-<p>Few miliseconds later, this Trumpet server intance takes over, starting from 2154122866
-                                                                             2154105374</p>
+<p>Few milliseconds later, this Trumpet server intance takes over, starting from 2154122866</p>
 <pre><code>2015-06-04 03:11:54.530 DEBUG [Curator-LeaderSelector-0] c.v.v.h.trumpet.server.TrumpetLeader - Elected as leader, let's stream!
 2015-06-04 03:11:54.595 DEBUG [Curator-LeaderSelector-0] c.v.v.h.trumpet.server.TrumpetLeader - Retrieved lastPublishedTxId: 2154122865
 2015-06-04 03:11:54.661 DEBUG [Curator-LeaderSelector-0] c.v.v.h.trumpet.server.TrumpetLeader - Reading editLog file /.../dfs/jn/journalhdfs1/current/edits_0000000002154116241-0000000002154123044 from tx 2154122866
@@ -190,7 +224,8 @@ Good, kafka topic hdfs.inotify.events and edit.log.dir com.verisign.vscc.hdfs.tr
 
 </code></pre>
 
-<p>Allright, no transaction lost!</p>
+<p>Alright, no transaction lost!</p>
+              
             </div>
           </div>
           <footer>
@@ -208,9 +243,8 @@ Good, kafka topic hdfs.inotify.events and edit.log.dir com.verisign.vscc.hdfs.tr
   <hr/>
 
   <div role="contentinfo">
-    <p>
     <!-- Copyright etc -->
-    </p>
+    
   </div>
 
   Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -225,15 +259,15 @@ Good, kafka topic hdfs.inotify.events and edit.log.dir com.verisign.vscc.hdfs.tr
 
 <div class="rst-versions" role="note" style="cursor: pointer">
     <span class="rst-current-version" data-toggle="rst-current-version">
-        
-      <span><a href="../applications/" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      <span style="margin-left: 15px"><a href="../changelog/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+      
+        <span><a href="../applications/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../changelog/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
     </span>
 </div>
 
-<!--
-MkDocs version  : 0.12.2
-Docs Build Date : 2015-06-08 14:32:03.881447
--->
 </body>
 </html>

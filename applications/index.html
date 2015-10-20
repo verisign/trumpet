@@ -81,6 +81,11 @@
             
                 <li class="toctree-l3"><a href="#use-it">Use it</a></li>
                 
+                    <li><a class="toctree-l4" href="#delivery-guarantee">Delivery guarantee</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#test-it">Test it</a></li>
+                
             
                 <li class="toctree-l3"><a href="#events-format">Events Format</a></li>
                 
@@ -170,7 +175,27 @@ for (Map&lt;String, Object&gt; event : new TrumpetEventStreamer(curatorFramework
 }
 </code></pre>
 
-<p>// TODO: A word on testing features</p>
+<h3 id="delivery-guarantee">Delivery guarantee</h3>
+<p>As Trumpet relies on Kafka, the delivery guarantee of Kafka is inherited for the client side.</p>
+<p><code>TrumpetEventStreamer</code> uses internally a <a href="https://cwiki.apache.org/confluence/display/KAFKA/0.8.0+SimpleConsumer+Example">simple consumer</a>
+and does not store any offset anywhere, the checkpointing process is offloaded to the application writer. 
+But a <a href="https://cwiki.apache.org/confluence/display/KAFKA/Consumer+Group+Example">Kafka consumer group</a> can be used instead,
+and configured as required to fit you application needs.</p>
+<h2 id="test-it">Test it</h2>
+<p>A test environment is available in the <code>trumpet-client:tests</code> jar. To import it inside your maven project, 
+use the following dependency:</p>
+<pre><code class="xml">        &lt;dependency&gt;
+            &lt;groupId&gt;com.verisign.vscc.trumpet&lt;/groupId&gt;
+            &lt;artifactId&gt;trumpet-client&lt;/artifactId&gt;
+            &lt;version&gt;${trumpet.version}&lt;/version&gt;
+            &lt;classifier&gt;tests&lt;/classifier&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+</code></pre>
+
+<p>You can then write test classes extending <code>com.verisign.vscc.hdfs.trumpet.server.IntegrationTest</code> and you'll have a 
+complete running environment, including Zookeeper, Kakfa and 
+<a href="http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/CLIMiniCluster.html">mini-hdfs</a>.</p>
 <h2 id="events-format">Events Format</h2>
 <p>The events published into Kakfa are JSON dictionary. The rationale behind that is discussed <a href="../architecture/#events-as-json-dictionary">here</a>.</p>
 <p>Events taken into account are basically all events modifying the NameNode <a href="">org.apache.hadoop.hdfs.server.namenode.INodeDirectory</a> in-memory structure. 

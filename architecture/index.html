@@ -214,8 +214,15 @@ at the same time. The processes are also monitoring the JournalNode process, rel
 if the JournalNode process died.</p>
 <h2 id="resume-from-previous-run">Resume from previous run</h2>
 <p>Once a Trumpet server process become active (leader), it will find out from Kafka which was the latest published transaction, 
-resuming the operation from there (or, in case of prolonged downtime, resume with the first found transaction in 
-the local <code>dfs.*.name.dir</code> directory.</p>
+resuming the operation from there. In other words, Trumpet does guarantee exactly once delivery of the transactions, except
+in two well identified corner cases</p>
+<ul>
+<li>in case of prolonged downtime, Trumpet resumes with the oldest found transaction in 
+the local <code>dfs.*.name.dir</code> directory.</li>
+<li>when the server crashed in the middle of a <code>ConcatDeleteOp</code> operation, which is a sequence of Append, Unlink* and Close
+ all sharing the same transaction id, it's not straight forward to recover properly. Worst case, the operation might
+ be truncated.</li>
+</ul>
 <h2 id="rolling-upgrade">Rolling upgrade</h2>
 <p>In case of production usage of Trumpet, rolling upgrades need to be addressed. With its leader election 
 feature, Trumpet rolling upgrade is as easy as upgrading one Trumpet worker at the time. 

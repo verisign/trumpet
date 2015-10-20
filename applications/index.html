@@ -198,13 +198,15 @@ complete running environment, including Zookeeper, Kakfa and
 <a href="http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/CLIMiniCluster.html">mini-hdfs</a>.</p>
 <h2 id="events-format">Events Format</h2>
 <p>The events published into Kakfa are JSON dictionary. The rationale behind that is discussed <a href="../architecture/#events-as-json-dictionary">here</a>.</p>
-<p>Events taken into account are basically all events modifying the NameNode <a href="">org.apache.hadoop.hdfs.server.namenode.INodeDirectory</a> in-memory structure. 
-The exhaustive list is given below, and they are regrouped in 6 event types: <code>CREATE</code>, <code>CLOSE</code>, <code>APPEND</code>, <code>RENAME</code>, <code>METADATA</code>, <code>UNLINK</code>:</p>
+<p>Events taken into account are basically all events modifying the NameNode 
+<a href="https://github.com/apache/hadoop/blob/trunk/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/INodeDirectory.java">INodeDirectory</a> 
+in-memory structure. The exhaustive list is given below, and they are regrouped in 6 event types: 
+<code>CREATE</code>, <code>CLOSE</code>, <code>APPEND</code>, <code>RENAME</code>, <code>METADATA</code>, <code>UNLINK</code>:</p>
 <ul>
 <li>Add -- either <code>CREATE</code> or <code>APPEND</code></li>
 <li>Close -- <code>CLOSE</code></li>
 <li>Set Replication -- <code>METADATA</code></li>
-<li>ConcatDelete -- create a sequence of <code>APPEND</code>, <code>UNLINK</code> and <code>CLOSE</code>, but all with the same <code>txId</code></li>
+<li>ConcatDelete -- create a sequence of <code>APPEND</code>, <code>UNLINK</code> and <code>CLOSE</code>, but all with the same <code>txId</code> (see <a href="../architecture/#resume-from-previous-run">notes</a>)</li>
 <li>RenameOld -- <code>RENAME</code></li>
 <li>Rename -- <code>RENAME</code></li>
 <li>Delete -- <code>UNLINK</code></li>
@@ -512,8 +514,8 @@ and
 </tbody>
 </table>
 <h2 id="example-application">Example Application</h2>
-<p><code>com.verisign.vscc.hdfs.trumpet.client.example.TestApp</code> is a sample application, listening to Trumpet and filtering out 
-<code>_SUCCESS</code> files, indicating the success of a MapReduce application.</p>
+<p><a href="https://github.com/verisign/trumpet/blob/master/client/src/main/java/com/verisign/vscc/hdfs/trumpet/client/example/TestApp.java">com.verisign.vscc.hdfs.trumpet.client.example.TestApp</a> 
+is a sample application, listening to Trumpet and filtering out <code>_SUCCESS</code> files, indicating the success of a MapReduce application.</p>
 <p>It would be really easy to start a distcp job from here to, for instance, replicate the newly created data into a different remote cluster.</p>
               
             </div>

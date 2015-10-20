@@ -212,7 +212,7 @@ or <a href="https://github.com/jordansissel/fpm">https://github.com/jordansissel
 <p><a href="https://issues.apache.org/jira/browse/HDFS-7446">HDFS-7446</a>, released as part of 
 <a href="https://github.com/aw-altiscale/eco-release-metadata/blob/master/HADOOP/2.7.0/RELEASENOTES.2.7.0.md">Hadoop 2.7.0 release</a>, 
 changed the HDFS-Inotify interface. In order to achieve multi-version compatibility, Trumpet is using a 
-<a href="../../server/src/main/java/org/apache/hadoop/hdfs/inotify/InotifyCompat.java">compatibility class</a> 
+<a href="https://github.com/verisign/trumpet/tree/master/server/src/main/java/org/apache/hadoop/hdfs/inotify/InotifyCompat.java">compatibility class</a> 
 which uses reflection to work around compatibility issues.</p>
 <p>Trumpet is tested with:</p>
 <ul>
@@ -223,7 +223,7 @@ which uses reflection to work around compatibility issues.</p>
 </ul>
 <h1 id="run-it">Run it</h1>
 <p>Trumpet server is a long running process to run alongside the JournalNode. A <a href="http://www.supervisord.org">supervisord</a> 
-<a href="../../server/src/main/config/trumpet-server.ini">config file</a> is also provided if you'd like to use supervisord daemon to launch Trumpet.</p>
+<a href="https://github.com/verisign/trumpet/tree/master/server/src/main/config/trumpet-server.ini">config file</a> is also provided if you'd like to use supervisord daemon to launch Trumpet.</p>
 <p>Once the RPM (or equivalent) is installed, manually launch Trumpet like this:</p>
 <pre><code class="bash">$ /opt/trumpet/server/bin/trumpet.sh --zk.connect &lt;zk_ip:2181&gt;
 </code></pre>

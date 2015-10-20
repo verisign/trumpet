@@ -179,7 +179,8 @@ Really useful for debugging, while this might be noisy.</p>
 </code></pre>
 
 <h2 id="kafka-tools">Kafka Tools</h2>
-<p>You can also use <a href="https://cwiki.apache.org/confluence/display/KAFKA/System+Tools">plain Kafka tools</a> to find out if there are events flowing into the topic:</p>
+<p>You can also use <a href="https://cwiki.apache.org/confluence/display/KAFKA/System+Tools">plain Kafka tools</a> to find out 
+if there are events flowing into the topic.</p>
 <h3 id="getting-the-latest-offset">Getting the latest offset</h3>
 <p>This tool will show you the latest (i.e, most recent) offest of the topic. Calling this function several time will let you show 
 how many offset (i.e, inotify events) arrived in the topic:</p>
@@ -192,10 +193,10 @@ how many offset (i.e, inotify events) arrived in the topic:</p>
 </code></pre>
 
 <h2 id="graphite-integration">Graphite Integration</h2>
-<p>Trumpet relies on the awesome <a href="http://metrics.dropwizard.io/">Metics library</a> to collect metrics, 
+<p>Trumpet relies on the awesome <a href="http://metrics.dropwizard.io/">Metrics library</a> to collect metrics, 
 like the transactionId actually processed, the number of event per seconds
 published into Kafka, since when the current daemon is leader, ... 
-See the <a href="../../server/src/main/java/com/verisign/vscc/hdfs/trumpet/server/metrics/Metrics.java">Metrics</a> 
+See the <a href="https://github.com/verisign/trumpet/tree/master/server/src/main/java/com/verisign/vscc/hdfs/trumpet/server/metrics/Metrics.java">Metrics</a> 
 class for more details.</p>
 <p>To reports these metrics in <a href="http://graphite.wikidot.com/">Graphite</a> (or compatible graphite collectors), simply 
 run <code>trumpet.sh</code> with <code>--graphite.server.hostport &lt;host&gt;:&lt;port&gt;</code> and you're all set. <code>&lt;port&gt;</code> is optional and is defaulted 

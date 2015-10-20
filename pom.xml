@@ -1,0 +1,260 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+<!-- maven cheat sheet
+Set a new version to the parent and modules
+mvn versions:set -DnewVersion=x.y.z[-SNAPSHOT]
+-->
+
+    <groupId>com.verisign.vscc.trumpet</groupId>
+
+    <artifactId>trumpet-parent</artifactId>
+    <name>Trumpet Parent</name>
+    <packaging>pom</packaging>
+    <version>2.2.0-SNAPSHOT</version>
+
+    <modules>
+        <module>common</module>
+        <module>server</module>
+        <module>client</module>
+    </modules>
+
+    <description>
+       Trumpet, aka HDFS INotify, is an non-intrusive inotify-like feature brought to HDFS.
+       Instead of polling directories for changes, changes are pushed to the clients via Kafka.
+    </description>
+
+    <properties>
+
+        <main.basedir>${project.basedir}</main.basedir>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Dependencies -->
+        <cobertura.version>2.5.1</cobertura.version>
+        <compile.source.version>1.7</compile.source.version>
+        <compile.target.version>1.7</compile.target.version>
+        <maven.assembly.version>2.2.1</maven.assembly.version>
+        <maven.compiler.version>2.0.2</maven.compiler.version>
+        <maven.javadoc.version>2.8</maven.javadoc.version>
+        <maven.exec.plugin.version>1.2.1</maven.exec.plugin.version>
+        <maven.reports.version>2.2</maven.reports.version>
+        <maven.site.version>3.0-beta-3</maven.site.version>
+        <maven.jxr.version>2.1</maven.jxr.version>
+        <surefire.version>2.9</surefire.version>
+        <maven.eclipse.version>2.8</maven.eclipse.version>
+        <maven.deploy.plugin.version>2.7</maven.deploy.plugin.version>
+        <maven.doxia.markdown.version>1.3</maven.doxia.markdown.version>
+        <maven.findbugs.version>3.0.1</maven.findbugs.version>
+        <maven.dependency.plugin.version>2.4</maven.dependency.plugin.version>
+
+        <junit.version>4.12</junit.version>
+        <mockito.version>1.10.19</mockito.version>
+        <logback.version>1.1.3</logback.version>
+        <jackson.core.version>1.9.10</jackson.core.version>
+        <jackson.mapper.version>1.9.10</jackson.mapper.version>
+        <guava.version>13.0.1</guava.version>
+        <commons-cli.version>1.2</commons-cli.version>
+        <commons.lang.version>2.6</commons.lang.version>
+        <slf4j.version>1.7.5</slf4j.version>
+        <apache.hadoop.version>2.6.0</apache.hadoop.version>
+        <metrics-core.version>3.1.1</metrics-core.version>
+    </properties>
+
+    <developers>
+        <developer>
+            <name>Benoit Perroud</name>
+            <id>bperroud</id>
+            <email>bperroud@verisign.com</email>
+        </developer>
+        <developer>
+            <name>Hari Kuppuswamy</name>
+            <id>hkuppusw</id>
+            <email>hkuppusw@verisign.com</email>
+        </developer>
+        <developer>
+            <name>Paula Morais</name>
+            <id>pmorais</id>
+            <email>paula@verisign.com</email>
+        </developer>
+    </developers>
+
+    <repositories>
+        <repository>
+            <id>Maven Central Repo</id>
+            <name>Maven Central Repo</name>
+            <url>http://repo1.maven.org/maven2</url>
+        </repository>
+        <repository>
+            <id>Artifactory Cloudera Releases</id>
+            <name>Artifactory Cloudera Releases</name>
+            <url>http://repository.cloudera.com/cloudera/cloudera-repos/</url>
+        </repository>
+        <repository>
+            <id>repo.hortonworks.com</id>
+            <name>Hortonworks HDP Maven Repository</name>
+            <url>http://repo.hortonworks.com/content/repositories/releases/</url>
+        </repository>
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+                <updatePolicy>never</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+            <id>HDPReleases-jetty-hadoop</id>
+            <name>HDP Releases-jetty-hadoop</name>
+            <url>http://repo.hortonworks.com/content/repositories/jetty-hadoop/</url>
+            <layout>default</layout>
+        </repository>
+    </repositories>
+
+    <dependencyManagement>
+      <dependencies>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+             <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+           <groupId>commons-lang</groupId>
+           <artifactId>commons-lang</artifactId>
+           <version>${commons.lang.version}</version>
+           <!--scope>provided</scope-->
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+    </dependencies> 
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency> 
+         <dependency>
+             <groupId>junit</groupId>
+             <artifactId>junit</artifactId>
+             <scope>test</scope>
+         </dependency>
+         <dependency>
+             <groupId>org.mockito</groupId>
+             <artifactId>mockito-all</artifactId>
+             <scope>test</scope>
+         </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.version}</version>
+                <configuration>
+                    <source>${compile.source.version}</source>
+                    <target>${compile.target.version}</target>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>findbugs</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>findbugs-maven-plugin</artifactId>
+                        <version>${maven.findbugs.version}</version>
+                        <configuration>
+                            <xmlOutput>true</xmlOutput>
+                            <failOnError>false</failOnError>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>findbugs</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>hadoop26</id>
+            <properties>
+                <apache.hadoop.version>2.6.0</apache.hadoop.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>hadoop27</id>
+            <properties>
+                <apache.hadoop.version>2.7.1</apache.hadoop.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>cdh52</id>
+            <properties>
+                <apache.hadoop.version>2.5.0-cdh5.2.6</apache.hadoop.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>cdh53</id>
+            <properties>
+                <apache.hadoop.version>2.5.0-cdh5.3.6</apache.hadoop.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>cdh54</id>
+            <properties>
+                <apache.hadoop.version>2.6.0-cdh5.4.7</apache.hadoop.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>hdp22</id>
+            <properties>
+                <apache.hadoop.version>2.6.0.2.2.6.9-1</apache.hadoop.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>hdp23</id>
+            <properties>
+                <apache.hadoop.version>2.7.1.2.3.2.0-2650</apache.hadoop.version>
+            </properties>
+        </profile>
+    </profiles>
+</project>

@@ -1,0 +1,11 @@
+site_name: Trumpet
+pages:
+- [index.md, What is Trumpet]
+- [architecture.md, How it works]
+- [installation.md, I want it!]
+- [applications.md, Write your Apps]
+- [operations.md, For DevOps]
+- [changelog.md, Changelog]
+- [license.md, License]
+
+theme: readthedocs

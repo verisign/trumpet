@@ -1,4 +1,4 @@
-Trumpet, aka HDFS Inotify
+Trumpet, aka HDFS Inotify [![Build Status](https://travis-ci.org/verisign/trumpet.svg?branch=master)](https://travis-ci.org/verisign/trumpet)
 ===
 
 Trumpet is an highly-available, fault-tolerant, non intrusive and scalable 

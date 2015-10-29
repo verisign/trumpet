@@ -3,17 +3,18 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-       <groupId>com.verisign.vscc.trumpet</groupId>
+        <groupId>com.verisign.vscc.trumpet</groupId>
         <artifactId>trumpet-parent</artifactId>
         <version>2.2.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>trumpet-server</artifactId>
-    <name>Trumpet server</name>
+    <artifactId>trumpet-examples</artifactId>
+    <name>Trumpet Client Examples</name>
     <packaging>jar</packaging>
     <version>2.2.0-SNAPSHOT</version>
 
     <description>
+        Trumpet Client Examples
     </description>
 
     <properties>
@@ -27,24 +28,21 @@
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-core</artifactId>
-            <version>${metrics-core.version}</version>
+            <groupId>com.verisign.vscc.trumpet</groupId>
+            <artifactId>trumpet-client</artifactId>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-graphite</artifactId>
-            <version>${metrics-core.version}</version>
+            <groupId>com.verisign.vscc.trumpet</groupId>
+            <artifactId>trumpet-server</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <scope>provided</scope>
-        </dependency>
-         <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-hdfs</artifactId>
-            <version>${apache.hadoop.version}</version>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-test</artifactId>
+            <version>2.7.1</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -56,34 +54,18 @@
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.10</artifactId>
             <version>0.8.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.10</artifactId>
-            <version>0.8.2.1</version>
             <classifier>test</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-framework</artifactId>
-            <version>2.7.1</version>
+            <groupId>org.apache.twill</groupId>
+            <artifactId>twill-api</artifactId>
+            <version>0.5.0-incubating</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-recipes</artifactId>
-            <version>2.7.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-test</artifactId>
-            <version>2.7.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.jopt-simple</groupId>
-            <artifactId>jopt-simple</artifactId>
-            <version>4.8</version>
+            <groupId>org.apache.twill</groupId>
+            <artifactId>twill-yarn</artifactId>
+            <version>0.5.0-incubating</version>
         </dependency>
         <dependency>
             <groupId>io.reactivex</groupId>
@@ -166,11 +148,11 @@
                 <rpm.logdirname>logs</rpm.logdirname>
                 <rpm.targetos>el6</rpm.targetos>
                 <rpm.targetArch>x86_64</rpm.targetArch>
-                <rpm.path>${rpm.apprefix}/server</rpm.path>
+                <rpm.path>${rpm.apprefix}/examples</rpm.path>
                 <rpm.logdirpath>${rpm.apprefix}/${rpm.logdirname}</rpm.logdirpath>
                 <rpm.appname>${project.artifactId}</rpm.appname>
                 <rpm.basedir>${project.artifactId}</rpm.basedir>
-                <rpm.distribution>Trumpet HDFS Event Replicator</rpm.distribution>
+                <rpm.distribution>Trumpet Application Examples</rpm.distribution>
             </properties>
             <build>
                 <plugins>

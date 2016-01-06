@@ -5,9 +5,3 @@ Version 2.0:
   visibility of [org.apache.hadoop.hdfs.tools.offlineEditsViewer.OfflineEditsBinaryLoader.java]
   (https://github.com/apache/hadoop-common/blob/trunk/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/tools/offlineEditsViewer/OfflineEditsLoader.java).
 
-This product includes software developed by [James Stanier](https://github.com/jstanier), which is released under the MIT License:
-
-* trumpet-commons includes classes from [https://github.com/jstanier/kafka-broker-discovery](https://github.com/jstanier/kafka-broker-discovery).
-  Unfortunately the aforementioned library does not allow reuse of shared CuratorFramework, which is required in order
-  to limit the number of connections to Zookeeper.
-

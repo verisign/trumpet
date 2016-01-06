@@ -1,18 +1,13 @@
 package com.verisign.vscc.hdfs.trumpet.client;
 
-import com.verisign.vscc.hdfs.trumpet.kafka.KafkaUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.verisign.vscc.hdfs.trumpet.kafka.SimpleConsumerHelper;
-import kafka.consumer.Consumer;
-import kafka.consumer.ConsumerConfig;
-import kafka.consumer.ConsumerIterator;
-import kafka.consumer.KafkaStream;
-import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.message.Message;
-import kafka.message.MessageAndMetadata;
 import org.apache.curator.framework.CuratorFramework;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.verisign.vscc.hdfs.trumpet.utils.TrumpetHelper.toMap;
 
 import java.io.IOException;
 import java.util.*;
@@ -23,9 +18,9 @@ import java.util.*;
  * Supports unbounded reads, from a given transaction or from the head of the topic
  * as well as bounded reads, from and to given transactions.
  */
-public class TrumpetEventStreamer implements Iterable<Map<String, Object>> {
+public class BoundedTrumpetEventStreamer implements Iterable<Map<String, Object>> {
 
-    private static Logger LOG = LoggerFactory.getLogger(TrumpetEventStreamer.class);
+    private static Logger LOG = LoggerFactory.getLogger(BoundedTrumpetEventStreamer.class);
 
     public static final int PARTITION_NUMBER = 0;
 
@@ -47,32 +42,11 @@ public class TrumpetEventStreamer implements Iterable<Map<String, Object>> {
      * @param initialTxId: starting transaction id. If null, start from the head of the topic
      * @param lastTxId: ending transaction id. If not null, the iteration stops when the transaction id is found.
      */
-    public TrumpetEventStreamer(CuratorFramework curatorFramework, String topicName, Long initialTxId, Long lastTxId) {
+    public BoundedTrumpetEventStreamer(CuratorFramework curatorFramework, String topicName, long initialTxId, long lastTxId) {
         this.curatorFramework = curatorFramework;
         this.topicName = topicName;
         this.initialTxId = initialTxId;
         this.lastTxId = lastTxId;
-    }
-
-    /**
-     * Facilitator constructor to infinitely read from Trumpet events from a given transaction id.
-     *
-     * @param curatorFramework
-     * @param topicName
-     * @param initialTxId
-     */
-    public TrumpetEventStreamer(CuratorFramework curatorFramework, String topicName, Long initialTxId) {
-        this(curatorFramework, topicName, initialTxId, null);
-    }
-
-    /**
-     * Facilitator constructor to infinitely read from Trumpet event from the head of the topic.
-     *
-     * @param curatorFramework
-     * @param topicName
-     */
-    public TrumpetEventStreamer(CuratorFramework curatorFramework, String topicName) {
-        this(curatorFramework, topicName, null);
     }
 
     @Override
@@ -112,16 +86,7 @@ public class TrumpetEventStreamer implements Iterable<Map<String, Object>> {
             if (this.it == null) {
                 Iterator<Message> it = null;
                 try {
-                    if (initialTxId != null) {
-                        if (lastTxId != null) {
-                            it = SimpleConsumerHelper.getMessagesFromTo(getTopicName(), PARTITION_NUMBER, initialTxId, lastTxId, curatorFramework);
-                        } else {
-                            it = SimpleConsumerHelper.getMessagesFrom(getTopicName(), PARTITION_NUMBER, initialTxId, curatorFramework);
-                        }
-                    } else {
-                        long latestOffset = SimpleConsumerHelper.getLastOffset(curatorFramework, getTopicName(), PARTITION_NUMBER);
-                        it = SimpleConsumerHelper.getMessagesFrom(getTopicName(), PARTITION_NUMBER, latestOffset, curatorFramework);
-                    }
+                    it = SimpleConsumerHelper.getMessagesFromTo(getTopicName(), PARTITION_NUMBER, initialTxId, lastTxId, curatorFramework);
                 } catch (Exception e) {
                     LOG.error("Got an exception", e);
                     throw new RuntimeException(e);
@@ -136,12 +101,4 @@ public class TrumpetEventStreamer implements Iterable<Map<String, Object>> {
         }
     }
 
-    public static Map<String, Object> toMap(byte[] payload) throws IOException {
-        final Map<String, Object> o = mapper.readValue(payload, Map.class);
-        return o;
-    }
-
-    public static Map<String, Object> toMap(Message message) throws IOException {
-        return toMap(KafkaUtils.toByteArray(message));
-    }
 }

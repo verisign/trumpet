@@ -4,11 +4,16 @@ import com.google.common.base.Joiner;
 import org.apache.curator.CuratorZookeeperClient;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.ExistsBuilder;
+import org.apache.curator.framework.api.GetChildrenBuilder;
+import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 import org.junit.Test;
 import org.mockito.Mockito;
+import static org.mockito.Mockito.*;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -27,7 +32,7 @@ public class KafkaUtilsTest extends SetupSimpleKafkaCluster {
         assertEquals(servers.size(), brokers.size());
     }
 
-    @Test(expected = KeeperException.NoNodeException.class)
+    @Test
     public void testBrokerListDiscoveryWithNonExistingZKHost() throws Exception {
 
         CuratorFramework curatorFramework1 = Mockito.mock(CuratorFramework.class);
@@ -36,14 +41,14 @@ public class KafkaUtilsTest extends SetupSimpleKafkaCluster {
         ExistsBuilder existsBuilder = Mockito.mock(ExistsBuilder.class);
         Stat stat = Mockito.mock(Stat.class);
 
-        Mockito.when(curatorFramework1.getZookeeperClient()).thenReturn(curatorZookeeperClient);
-        Mockito.when(curatorZookeeperClient.getCurrentConnectionString()).thenReturn(Joiner.on(",").join("localhost:123", curatorFramework.getZookeeperClient().getCurrentConnectionString()));
-        Mockito.when(curatorFramework1.checkExists()).thenReturn(existsBuilder);
-        Mockito.when(existsBuilder.forPath(Mockito.anyString())).thenReturn(null);
+        GetChildrenBuilder childrenBuilder = Mockito.mock(GetChildrenBuilder.class);
+        GetDataBuilder dataBuilder = Mockito.mock(GetDataBuilder.class);
+
+        Mockito.when(curatorFramework1.getChildren()).thenReturn(childrenBuilder);
+        Mockito.when(childrenBuilder.forPath(eq("/brokers/ids"))).thenReturn(Collections.<String>emptyList());
 
         List<String> brokers = KafkaUtils.retrieveBrokerListFromZK(curatorFramework1);
-        fail();
-        //assertEquals(2, brokers.size());
+        assertEquals(0, brokers.size());
     }
 
 

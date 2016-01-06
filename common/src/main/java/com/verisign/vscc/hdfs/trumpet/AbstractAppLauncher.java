@@ -171,7 +171,7 @@ public abstract class AbstractAppLauncher implements Tool, Closeable {
                 "Same format than --" + OPTION_ZK_CONNECT)
                 .withRequiredArg();
         getParser().accepts(OPTION_TOPIC, "Name of the kafka topic to publish the inotify events to")
-                .withOptionalArg().defaultsTo(DEFAULT_TOPIC_NAME);
+                .withRequiredArg().defaultsTo(DEFAULT_TOPIC_NAME);
 
         initParser();
 

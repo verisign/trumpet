@@ -1,18 +1,14 @@
 package com.verisign.vscc.hdfs.trumpet.kafka;
 
-import com.brandwatch.kafka.discovery.KafkaBrokerDiscoverer;
 import com.google.common.base.Preconditions;
+import com.verisign.vscc.hdfs.trumpet.utils.TrumpetHelper;
 import kafka.admin.AdminUtils;
 import kafka.message.Message;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.curator.framework.CuratorFramework;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Kafka utility functions.
@@ -20,8 +16,6 @@ import java.util.Properties;
  * The rational is to have only a dependency on Zookeeper
  * which we have anyway for the leader election
  * and then deduce the broker list from ZK.
- *
- * @see com.brandwatch.kafka.discovery for more details here.
  */
 public class KafkaUtils {
 
@@ -34,19 +28,13 @@ public class KafkaUtils {
         return zkClient1;
     }
 
-    public static List<String> retrieveBrokerListFromZK(CuratorFramework curatorFramework) throws Exception {
-
-        String brokersConnectionString = null;
-
-        do {
-            KafkaBrokerDiscoverer discoverer = new KafkaBrokerDiscoverer(curatorFramework);
-            brokersConnectionString = discoverer.getConnectionString();
-            discoverer.close();
-        } while (brokersConnectionString == null);
-
-        String[] brokersPart = brokersConnectionString.split(",");
-
-        List<String> brokers = Arrays.asList(brokersPart);
+    public static List<String> retrieveBrokerListFromZK(final CuratorFramework curatorFramework) throws Exception {
+        final List<String> brokers = new LinkedList<>();
+        List<String> znodes = curatorFramework.getChildren().forPath("/brokers/ids");
+        for (String znode : znodes) {
+            Map<String, Object> stringObjectMap = TrumpetHelper.toMap(curatorFramework.getData().forPath("/brokers/ids/" + znode));
+            brokers.add(stringObjectMap.get("host").toString() + ":" + stringObjectMap.get("port"));
+        }
         return brokers;
     }
 
@@ -60,7 +48,6 @@ public class KafkaUtils {
         ZkClient zkClient = fromCurator(curatorFramework);
 
         try {
-
             AdminUtils.createTopic(zkClient, topic, partitions, replication, new Properties());
         } finally {
             if (zkClient != null) {

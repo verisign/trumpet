@@ -3,3 +3,16 @@ language: java
 jdk:
   - oraclejdk7
   - oraclejdk8
+
+env:
+  matrix:
+    - HADOOP_VERSION=hadoop26
+    - HADOOP_VERSION=hadoop27
+    - HADOOP_VERSION=cdh52
+    - HADOOP_VERSION=cdh53
+    - HADOOP_VERSION=cdh54
+    - HADOOP_VERSION=hdp22
+    - HADOOP_VERSION=hdp232
+    - HADOOP_VERSION=hdp234
+
+script: "mvn clean install -P${HADOOP_VERSION}"

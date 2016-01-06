@@ -12,7 +12,7 @@ mvn versions:set -DnewVersion=x.y.z[-SNAPSHOT]
     <artifactId>trumpet-parent</artifactId>
     <name>Trumpet Parent</name>
     <packaging>pom</packaging>
-    <version>2.2.0-SNAPSHOT</version>
+    <version>2.3.0-SNAPSHOT</version>
 
     <modules>
         <module>common</module>
@@ -49,6 +49,7 @@ mvn versions:set -DnewVersion=x.y.z[-SNAPSHOT]
         <maven.doxia.markdown.version>1.3</maven.doxia.markdown.version>
         <maven.findbugs.version>3.0.1</maven.findbugs.version>
         <maven.dependency.plugin.version>2.4</maven.dependency.plugin.version>
+        <maven.rpm.plugin.version>2.1-alpha-1</maven.rpm.plugin.version>
 
         <junit.version>4.12</junit.version>
         <mockito.version>1.10.19</mockito.version>
@@ -59,9 +60,12 @@ mvn versions:set -DnewVersion=x.y.z[-SNAPSHOT]
         <commons-cli.version>1.2</commons-cli.version>
         <commons.lang.version>2.6</commons.lang.version>
         <slf4j.version>1.7.5</slf4j.version>
-        <apache.hadoop.version>2.6.0</apache.hadoop.version>
+        <apache.hadoop.version>2.6.2</apache.hadoop.version>
         <metrics-core.version>3.1.1</metrics-core.version>
-        <maven.rpm.plugin.version>2.1-alpha-1</maven.rpm.plugin.version>
+        <curator.version>2.7.1</curator.version>
+        <jopt-simple.version>4.8</jopt-simple.version>
+        <rxjava.version>1.0.8</rxjava.version>
+
     </properties>
 
     <developers>
@@ -159,9 +163,66 @@ mvn versions:set -DnewVersion=x.y.z[-SNAPSHOT]
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-framework</artifactId>
-            <version>2.7.1</version>
+            <version>${curator.version}</version>
         </dependency>
-    </dependencies> 
+          <dependency>
+              <groupId>org.apache.curator</groupId>
+              <artifactId>curator-recipes</artifactId>
+              <version>${curator.version}</version>
+          </dependency>
+          <dependency>
+              <groupId>org.apache.curator</groupId>
+              <artifactId>curator-client</artifactId>
+              <version>${curator.version}</version>
+          </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-test</artifactId>
+            <version>${curator.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.jopt-simple</groupId>
+            <artifactId>jopt-simple</artifactId>
+            <version>${jopt-simple.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.reactivex</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>${rxjava.version}</version>
+        </dependency>
+          <dependency>
+              <groupId>org.apache.hadoop</groupId>
+              <artifactId>hadoop-common</artifactId>
+              <version>${apache.hadoop.version}</version>
+              <exclusions>
+                  <exclusion>
+                      <groupId>org.apache.curator</groupId>
+                      <artifactId>curator-client</artifactId>
+                  </exclusion>
+              </exclusions>
+          </dependency>
+          <dependency>
+              <groupId>org.apache.hadoop</groupId>
+              <artifactId>hadoop-hdfs</artifactId>
+              <version>${apache.hadoop.version}</version>
+          </dependency>
+          <dependency>
+              <groupId>org.apache.hadoop</groupId>
+              <artifactId>hadoop-hdfs</artifactId>
+              <classifier>tests</classifier>
+              <version>${apache.hadoop.version}</version>
+          </dependency>
+          <dependency>
+              <groupId>org.apache.hadoop</groupId>
+              <artifactId>hadoop-minicluster</artifactId>
+              <version>${apache.hadoop.version}</version>
+          </dependency>
+          <dependency>
+              <groupId>io.dropwizard.metrics</groupId>
+              <artifactId>metrics-core</artifactId>
+              <version>${metrics-core.version}</version>
+          </dependency>
+      </dependencies>
     </dependencyManagement>
 
     <dependencies>
@@ -224,7 +285,7 @@ mvn versions:set -DnewVersion=x.y.z[-SNAPSHOT]
         <profile>
             <id>hadoop26</id>
             <properties>
-                <apache.hadoop.version>2.6.0</apache.hadoop.version>
+                <apache.hadoop.version>2.6.2</apache.hadoop.version>
             </properties>
         </profile>
         <profile>
@@ -242,13 +303,13 @@ mvn versions:set -DnewVersion=x.y.z[-SNAPSHOT]
         <profile>
             <id>cdh53</id>
             <properties>
-                <apache.hadoop.version>2.5.0-cdh5.3.6</apache.hadoop.version>
+                <apache.hadoop.version>2.5.0-cdh5.3.8</apache.hadoop.version>
             </properties>
         </profile>
         <profile>
             <id>cdh54</id>
             <properties>
-                <apache.hadoop.version>2.6.0-cdh5.4.7</apache.hadoop.version>
+                <apache.hadoop.version>2.6.0-cdh5.4.8</apache.hadoop.version>
             </properties>
         </profile>
         <profile>
@@ -258,10 +319,17 @@ mvn versions:set -DnewVersion=x.y.z[-SNAPSHOT]
             </properties>
         </profile>
         <profile>
-            <id>hdp23</id>
+            <id>hdp232</id>
             <properties>
-                <apache.hadoop.version>2.7.1.2.3.2.0-2650</apache.hadoop.version>
+                <apache.hadoop.version>2.7.1.2.3.2.0-2950</apache.hadoop.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>hdp234</id>
+            <properties>
+                <apache.hadoop.version>2.7.1.2.3.4.0-3485</apache.hadoop.version>
             </properties>
         </profile>
     </profiles>
 </project>
+

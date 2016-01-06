@@ -386,15 +386,15 @@ public class SimpleConsumerHelper {
 //                    brokers = KafkaUtils.retrieveBrokerListFromZK(curatorFramework);
 //                }
 
-                PartitionMetadata metadata = findLeader(brokers, topic, partition);
-                if (metadata == null) {
-                    throw new UnknownTopicOrPartitionException("Can't find metadata for Topic " + topic + " and Partition " + partition);
-                }
-                if (metadata.leader() == null) {
-                    throw new LeaderNotAvailableException("Can't find Leader for Topic " + topic + " and Partition " + partition);
-                }
-                String leadBrokerHost = metadata.leader().host();
-                int leadBrokerPort = metadata.leader().port();
+//                PartitionMetadata metadata = findLeader(brokers, topic, partition);
+//                if (metadata == null) {
+//                    throw new UnknownTopicOrPartitionException("Can't find metadata for Topic " + topic + " and Partition " + partition);
+//                }
+//                if (metadata.leader() == null) {
+//                    throw new LeaderNotAvailableException("Can't find Leader for Topic " + topic + " and Partition " + partition);
+//                }
+//                String leadBrokerHost = metadata.leader().host();
+//                int leadBrokerPort = metadata.leader().port();
 
                 try {
                     consumer = getSimpleConsumerForTopicAndPartition(curatorFramework, topic, partition, clientName);

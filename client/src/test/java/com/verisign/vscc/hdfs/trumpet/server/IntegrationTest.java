@@ -3,16 +3,12 @@ package com.verisign.vscc.hdfs.trumpet.server;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
-import com.verisign.vscc.hdfs.trumpet.client.TrumpetEventStreamer;
+import com.verisign.vscc.hdfs.trumpet.client.BoundedTrumpetEventStreamer;
+import com.verisign.vscc.hdfs.trumpet.client.InfiniteTrumpetEventStreamer;
 import com.verisign.vscc.hdfs.trumpet.dto.EventAndTxId;
 import com.verisign.vscc.hdfs.trumpet.kafka.KafkaUtils;
 import com.verisign.vscc.hdfs.trumpet.kafka.SimpleConsumerHelper;
 import kafka.admin.AdminUtils;
-import kafka.api.TopicMetadata;
-import kafka.client.ClientUtils;
-import kafka.javaapi.consumer.SimpleConsumer;
-import kafka.message.Message;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServer;
 import kafka.utils.*;
@@ -29,13 +25,10 @@ import org.apache.hadoop.hdfs.DFSTestUtil;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.hdfs.qjournal.MiniQJMHACluster;
 import org.apache.hadoop.util.ToolRunner;
-import org.apache.hadoop.util.hash.Hash;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import scala.collection.JavaConversions;
-import scala.collection.Seq;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -46,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertTrue;
 
-public class IntegrationTest {
+public abstract class IntegrationTest {
 
     protected static final long DEFAULT_TIMEOUT = 600000;
     protected static final int BLOCK_SIZE = 1024;
@@ -203,47 +196,17 @@ public class IntegrationTest {
             cluster.shutdown();
         }
 
+        if (curatorFramework != null) {
+            curatorFramework.close();
+        }
+
+        if (zkClient != null) {
+            zkClient.close();
+        }
+
         if (zkTestingCluster != null) {
             zkTestingCluster.close();
         }
-    }
-
-    @Test
-    public void test() throws Exception {
-
-        final FileSystem fs = cluster.getDfsCluster().getFileSystem(0);
-
-        final int numberOfFiles = r.nextInt(10) + 5;
-
-        try {
-            for (int i = 0; i < numberOfFiles; i++) {
-                DFSTestUtil.createFile(fs, new Path("/file2-" + i), BLOCK_SIZE, (short) 1, 0L);
-                totalNumberOfFiles++;
-            }
-        } catch (Exception e) {
-            System.err.println("Exception occurred in the file creation process");
-            e.printStackTrace();
-        }
-
-        Thread.sleep(5000);
-
-        long lastOffset = SimpleConsumerHelper.getLastOffset(curatorFramework, trumpetTopicName, 0);
-
-        Iterator<Map<String, Object>> it = new TrumpetEventStreamer(curatorFramework, trumpetTopicName, 0L, lastOffset).iterator();
-
-        int i = 0;
-        while (it.hasNext()) {
-            Map<String, Object> o = it.next();
-            String eventType = (String) o.get(EventAndTxId.FIELD_EVENTTYPE);
-            if ("CLOSE".equals(eventType)) {
-                i++;
-            }
-        }
-
-//        numberOfFiles and not totalNumberOfFiles because Trumpet is starting from the current transaction
-//        when no message in Kafka.
-        Assert.assertEquals(numberOfFiles, i);
-
     }
 
     protected static String kafkaServersToListOfString(List<KafkaServer> servers) {

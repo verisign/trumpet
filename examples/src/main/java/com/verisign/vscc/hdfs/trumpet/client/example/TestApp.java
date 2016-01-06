@@ -2,12 +2,11 @@ package com.verisign.vscc.hdfs.trumpet.client.example;
 
 import com.google.common.collect.Sets;
 import com.verisign.vscc.hdfs.trumpet.AbstractAppLauncher;
-import com.verisign.vscc.hdfs.trumpet.client.TrumpetEventStreamer;
+import com.verisign.vscc.hdfs.trumpet.client.InfiniteTrumpetEventStreamer;
 import com.verisign.vscc.hdfs.trumpet.dto.EventAndTxId;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
-import rx.*;
 import rx.functions.Action1;
 import rx.functions.Func1;
 
@@ -25,7 +24,7 @@ public class TestApp extends AbstractAppLauncher {
     @Override
     protected int internalRun() throws Exception {
 
-        TrumpetEventStreamer trumpetEventStreamer = new TrumpetEventStreamer(getCuratorFrameworkKafka(), getTopic());
+        InfiniteTrumpetEventStreamer trumpetEventStreamer = new InfiniteTrumpetEventStreamer(getCuratorFrameworkKafka(), getTopic());
 
         rx.Observable.from(trumpetEventStreamer)
 

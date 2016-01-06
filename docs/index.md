@@ -53,7 +53,7 @@ To dig into Trumpet's features and how it works, please go to the [architecture]
 4. Start it.
   ```/opt/trumpet/server/bin/trumpet.sh --zk.connect <zk_ip:2181>```
 
-Or user the [supervisord](http://www.supervisord.org) [config file](https://github.com/verisign/trumpet/tree/master/server/src/main/config/trumpet-server.ini) provided.
+Or user the [supervisord](http://www.supervisord.org) [config file]( server/src/main/config/trumpet-server.ini) provided.
 
 For more details about the server side, please go to the [installation](installation/) page.
 

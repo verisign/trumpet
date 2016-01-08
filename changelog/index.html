@@ -90,6 +90,12 @@
         
             <ul>
             
+                <li class="toctree-l3"><a href="#version-231">Version 2.3.1</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#version-23">Version 2.3</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#version-22">Version 2.2</a></li>
                 
             
@@ -138,6 +144,20 @@
             <div class="section">
               
                 <p>Trumpet Changelog.</p>
+<h2 id="version-231">Version 2.3.1</h2>
+<ul>
+<li>Avoid message leak in the Infinite Streamer</li>
+<li>Make server more integration test friendly (contrib by vgrivel)</li>
+</ul>
+<h2 id="version-23">Version 2.3</h2>
+<ul>
+<li><a href="">#PR1</a> Move examples in a dedicated subproject</li>
+<li>Add Trie data structure for efficient path filtering</li>
+<li>Remove dependency on github.com/jstanier/kafka-broker-discovery</li>
+<li>Add HDP 2.3.4 support</li>
+<li>Clean up dependencies -- importing trumpet-client in downstream project is safe</li>
+<li>Split TrumpetEventStreamer in infinite (relying on Kafka Group Consumer) and Bounded (based on Kafka Simple Consumer)</li>
+</ul>
 <h2 id="version-22">Version 2.2</h2>
 <ul>
 <li>Initial Public Release</li>

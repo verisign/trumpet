@@ -1,6 +1,11 @@
 
 Trumpet Changelog.
 
+## Version 2.3.1
+
+* Avoid message leak in the Infinite Streamer
+* Make server more integration test friendly (contrib by vgrivel)
+
 ## Version 2.3
 
 * [#PR1]() Move examples in a dedicated subproject

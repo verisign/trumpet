@@ -119,7 +119,7 @@ The available attributes in the JSON dict per event types are described below.
 | -------------- |:---------:| ----------- |
 | txId           | Yes       | transaction Id |
 | eventType      | CREATE    | type of event.  |
-| iNodeType      |           |             |
+| iNodeType      |           | Value can be FILE, DIRECTORY or SYMLINK. See org.apache.hadoop.hdfs.inotify.Event.INodeType for more details. |
 | path           |           |             |
 | ctime          |           |             |
 | replication    |           |             |

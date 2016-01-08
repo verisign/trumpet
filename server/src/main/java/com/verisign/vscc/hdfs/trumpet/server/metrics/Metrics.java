@@ -6,7 +6,7 @@ import com.verisign.vscc.hdfs.trumpet.server.TrumpetServer;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.codahale.metrics.MetricRegistry.*;
+import static com.codahale.metrics.MetricRegistry.name;
 
 public class Metrics {
 
@@ -92,4 +92,9 @@ public class Metrics {
     public static Meter noTxFileFound() {
         return noTxFileFoundMeter;
     }
+
+    public static void close() {
+        getRegistry().remove(uptime);
+    }
+
 }

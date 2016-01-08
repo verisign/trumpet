@@ -2,7 +2,6 @@ package com.verisign.vscc.hdfs.trumpet.server;
 
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricFilter;
-import com.codahale.metrics.Timer;
 import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
 import com.verisign.vscc.hdfs.trumpet.AbstractAppLauncher;
@@ -28,6 +27,9 @@ public class TrumpetServerCLI extends AbstractAppLauncher {
 
     private final CountDownLatch latch = new CountDownLatch(1);
     private boolean initialized = false;
+    private GraphiteReporter graphiteReporter;
+    private TrumpetServer trumpetServer;
+    private JmxReporter jmxReporter;
 
     private File dfsEditsDir;
     private long baseThrottleTimeMs;
@@ -71,10 +73,11 @@ public class TrumpetServerCLI extends AbstractAppLauncher {
 
         baseThrottleTimeMs = Long.parseLong((String) getOptions().valueOf(OPTION_BASE_THROTTLE_TIME_MS));
 
-        final JmxReporter jmxReporter = JmxReporter.forRegistry(Metrics.getRegistry()).build();
-        jmxReporter.start();
+        final JmxReporter localJmxReporter = JmxReporter.forRegistry(Metrics.getRegistry()).build();
+        jmxReporter = localJmxReporter;
+        localJmxReporter.start();
 
-        final GraphiteReporter graphiteReporter;
+        final GraphiteReporter localGraphiteReporter;
         if (getOptions().has(OPTION_GRAPHITE_SERVER_HOST_PORT)) {
             String graphiteServer = (String) getOptions().valueOf(OPTION_GRAPHITE_SERVER_HOST_PORT);
             String grahitePrefix = (String) getOptions().valueOf(OPTION_GRAPHITE_PREFIX);
@@ -82,19 +85,19 @@ public class TrumpetServerCLI extends AbstractAppLauncher {
             final Graphite graphite = new Graphite(
                     new InetSocketAddress(serverParts[0],
                             Integer.parseInt(serverParts.length > 1 ? serverParts[1] : "2003")));
-            graphiteReporter = GraphiteReporter.forRegistry(Metrics.getRegistry())
+            localGraphiteReporter = GraphiteReporter.forRegistry(Metrics.getRegistry())
                     .prefixedWith(grahitePrefix)
                     .convertRatesTo(TimeUnit.SECONDS)
                     .convertDurationsTo(TimeUnit.MILLISECONDS)
                     .filter(MetricFilter.ALL)
                     .build(graphite);
-            graphiteReporter.start(1, TimeUnit.MINUTES);
-        } else { graphiteReporter = null; }
-
+            localGraphiteReporter.start(1, TimeUnit.MINUTES);
+        } else { localGraphiteReporter = null; }
+        graphiteReporter = localGraphiteReporter;
         Metrics.uptime();
 
-        final TrumpetServer trumpetServer = new TrumpetServer(getCuratorFrameworkUser(), getConf(), getTopic(), dfsEditsDir, baseThrottleTimeMs);
-
+        final TrumpetServer localTrumpetServer = new TrumpetServer(getCuratorFrameworkUser(), getConf(), getTopic(), dfsEditsDir, baseThrottleTimeMs);
+        trumpetServer = localTrumpetServer;
         Runtime.getRuntime().addShutdownHook(new Thread() {
 
             @Override
@@ -103,15 +106,16 @@ public class TrumpetServerCLI extends AbstractAppLauncher {
                 System.out.println("Trumpet shutdown from external signal received.");
 
                 try {
-                    trumpetServer.close();
+                    localTrumpetServer.close();
                 } catch (IOException e) {
                     // well, can't really recover here, shutting down anyway...
                     e.printStackTrace();
                 } finally {
-                    jmxReporter.stop();
-                    if (graphiteReporter != null) {
-                        graphiteReporter.stop();
+                    localJmxReporter.stop();
+                    if (localGraphiteReporter != null) {
+                        localGraphiteReporter.stop();
                     }
+                    Metrics.close();
                 }
             }
         });
@@ -121,7 +125,7 @@ public class TrumpetServerCLI extends AbstractAppLauncher {
 
         System.out.println("Application is launching. Moving verbosity to log file.");
 
-        trumpetServer.run();
+        localTrumpetServer.run();
 
         System.out.println("Application terminated. Shutdown complete.");
 
@@ -148,6 +152,20 @@ public class TrumpetServerCLI extends AbstractAppLauncher {
     @Override
     protected void internalClose() throws IOException {
         latch.countDown();
+        System.out.println("Trumpet shutdown internalClose");
+
+        try {
+            trumpetServer.close();
+        } catch (IOException e) {
+            // well, can't really recover here, shutting down anyway...
+            e.printStackTrace();
+        } finally {
+            jmxReporter.stop();
+            if (graphiteReporter != null) {
+                graphiteReporter.stop();
+            }
+            Metrics.close();
+        }
     }
 
     public boolean isInitialized() {

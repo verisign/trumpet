@@ -5,13 +5,13 @@
     <parent>
         <groupId>com.verisign.vscc.trumpet</groupId>
         <artifactId>trumpet-parent</artifactId>
-        <version>2.3.0-SNAPSHOT</version>
+        <version>2.3.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>trumpet-examples</artifactId>
     <name>Trumpet Client Examples</name>
     <packaging>jar</packaging>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>2.3.1-SNAPSHOT</version>
 
     <description>
         Trumpet Client Examples

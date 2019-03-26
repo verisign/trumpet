@@ -64,13 +64,13 @@ fi
 #JAVA_OPTS="-XX:+HeapDumpOnOutOfMemoryError -verbose:gc"
 
 # Start up size for memory allocation pool for java VM.
-MS=512m
+MS=256m
 
 # Max size of memory allocation pool for java VM.
-MX=8g
+MX=2048m
 
 JAVA_OPTS="$JAVA_OPTS -Xms$MS -Xmx$MX -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:-CMSConcurrentMTEnabled -XX:CMSInitiatingOccupancyFraction=70 -XX:+CMSParallelRemarkEnabled -XX:+DoEscapeAnalysis"
-JAVA_OPTS="$JAVA_OPTS -Dlogback.configurationFile=logback-to-console.xml"
+JAVA_OPTS="$JAVA_OPTS -Dlog4j.configuration=log4j-to-console.properties"
 
 export HADOOP_USER_CLASSPATH_FIRST=true
 

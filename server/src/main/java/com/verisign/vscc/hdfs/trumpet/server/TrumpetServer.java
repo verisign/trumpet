@@ -32,6 +32,7 @@ public class TrumpetServer implements Runnable, AutoCloseable {
     private final String topic;
     private final File dfsEditsDir;
     private final long baseThrottleTimeMs;
+    private final int kafkaRequiredAcks;
 
     private final DistributedFileSystem dfs;
     private final LeaderSelector leaderSelector;
@@ -46,18 +47,19 @@ public class TrumpetServer implements Runnable, AutoCloseable {
     private final CountDownLatch executionLatch = new CountDownLatch(1);
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
-    public TrumpetServer(CuratorFramework curatorFramework, Configuration conf, String topic, File dfsEditsDir)
+    public TrumpetServer(CuratorFramework curatorFramework, Configuration conf, String topic, File dfsEditsDir, int kafkaRequiredAcks)
             throws IOException {
-        this(curatorFramework, conf, topic, dfsEditsDir, DEFAULT_BASE_THROTTLE_TIME_MS);
+        this(curatorFramework, conf, topic, dfsEditsDir, kafkaRequiredAcks, DEFAULT_BASE_THROTTLE_TIME_MS);
     }
 
-    public TrumpetServer(CuratorFramework curatorFramework, Configuration conf, String topic, File dfsEditsDir, long baseThrottleTimeMs)
+    public TrumpetServer(CuratorFramework curatorFramework, Configuration conf, String topic, File dfsEditsDir, int kafkaRequiredAcks, long baseThrottleTimeMs)
             throws IOException {
         this.curatorFramework = curatorFramework;
         this.conf = conf;
         this.topic = topic;
         this.dfsEditsDir = dfsEditsDir;
         this.baseThrottleTimeMs = baseThrottleTimeMs;
+        this.kafkaRequiredAcks = kafkaRequiredAcks;
 
         FileSystem fs = FileSystem.get(conf);
         Preconditions.checkState(fs instanceof DistributedFileSystem, "FileSystem is not a DistributedFileSystem");
@@ -66,7 +68,7 @@ public class TrumpetServer implements Runnable, AutoCloseable {
         editLogDir = new EditLogDir(dfsEditsDir, conf);
         watchDog = new WatchDog(dfs, editLogDir, this);
 
-        trumpetLeader = new TrumpetLeader(curatorFramework, dfs, topic, editLogDir, baseThrottleTimeMs);
+        trumpetLeader = new TrumpetLeader(curatorFramework, dfs, topic, editLogDir, kafkaRequiredAcks, baseThrottleTimeMs);
 
         leaderSelector = new LeaderSelector(curatorFramework, zkLeaderElectionName(topic) , trumpetLeader);
         leaderSelector.autoRequeue();

@@ -166,10 +166,20 @@ The available attributes in the JSON dict per event types are described below.
 | path           |           |             |
 | timestamp      |           |             |
 
+## `txId` is a Number!
+
+The JSON object published contains the `txId`, which is actually a proper JSON number.
+This means that it might be decoded in Integer or Long, depending on the number.
+The proper way to decode it is to make it a `Number` and get the long value:
+
+```
+Long txtId = ((Number) event.get(EventAndTxId.FIELD_TXID)).longValue();
+```
 
 ## Example Application
 
-[com.verisign.vscc.hdfs.trumpet.client.example.TestApp](https://github.com/verisign/trumpet/blob/master/client/src/main/java/com/verisign/vscc/hdfs/trumpet/client/example/TestApp.java) 
+[com.verisign.vscc.hdfs.trumpet.client.example.TestApp](https://github.com/verisign/trumpet/blob/master/examples/src/main/java/com/verisign/vscc/hdfs/trumpet/client/example/TestApp.java) 
 is a sample application, listening to Trumpet and filtering out `_SUCCESS` files, indicating the success of a MapReduce application.
 
 It would be really easy to start a distcp job from here to, for instance, replicate the newly created data into a different remote cluster.
+

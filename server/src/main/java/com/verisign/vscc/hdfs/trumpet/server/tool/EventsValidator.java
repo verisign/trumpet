@@ -63,19 +63,19 @@ public class EventsValidator extends AbstractAppLauncher {
             }
         }
         if (tmpDfsEditsDir == null) {
-            System.err.println("No " + OPTION_DFS_EDITS_DIR + " directory set. Please pass it to the command line with --"
+            LOG.error("No " + OPTION_DFS_EDITS_DIR + " directory set. Please pass it to the command line with --"
                     + OPTION_DFS_EDITS_DIR + " or set " + DFSConfigKeys.DFS_JOURNALNODE_EDITS_DIR_KEY + " in your hadoop config");
             return ReturnCode.ERROR_WITH_DFS_EDIT_DIR;
         }
 
         dfsEditsDir = new File(tmpDfsEditsDir);
         if (!dfsEditsDir.isDirectory()) {
-            System.err.println("Directory " + dfsEditsDir + " does not seem to exist. Please set the directory in your " +
+            LOG.error("Directory " + dfsEditsDir + " does not seem to exist. Please set the directory in your " +
                     "hadoop config (key is " + DFSConfigKeys.DFS_JOURNALNODE_EDITS_DIR_KEY + ")");
             return ReturnCode.ERROR_WITH_DFS_EDIT_DIR;
         }
         if (!dfsEditsDir.canRead()) {
-            System.err.println("Directory " + dfsEditsDir + " can be read. Please correct the dfset the directory in your " +
+            LOG.error("Directory " + dfsEditsDir + " can be read. Please correct the dfset the directory in your " +
                     "hadoop config (key is " + DFSConfigKeys.DFS_JOURNALNODE_EDITS_DIR_KEY + ")");
             return ReturnCode.ERROR_WITH_DFS_EDIT_DIR;
         }
@@ -83,7 +83,7 @@ public class EventsValidator extends AbstractAppLauncher {
         final Iterator<Message> it = SimpleConsumerHelper.getNLastMessages(getTopic(), TrumpetServer.PARTITION_NUM, numberOfEvents, getCuratorFrameworkKafka());
 
         if (!it.hasNext()) {
-            System.err.println("No messages found in kafka topic " + getTopic());
+            LOG.error("No messages found in kafka topic " + getTopic());
             return ReturnCode.NO_MESSAGE_IN_KAFKA;
         }
 
@@ -114,7 +114,7 @@ public class EventsValidator extends AbstractAppLauncher {
             editsLogFile = editLogDir.searchBestMatchingSegment(lastTxId.get());
 
             // TODO: when lastTxId is too old, the editsLogFile might not contains it.
-            System.out.println("Processing " + editsLogFile + " from tx " + lastTxId.get());
+            LOG.info("Processing " + editsLogFile + " from tx " + lastTxId.get());
 
             Subscription s = null;
             try {
@@ -165,7 +165,7 @@ public class EventsValidator extends AbstractAppLauncher {
 
         }
 
-        System.out.println("Good, kafka topic " + getTopic() + " and edit.log.dir " + editLogDir + " look consistent.");
+        LOG.info("Good, kafka topic " + getTopic() + " and edit.log.dir " + editLogDir + " look consistent.");
 
         return ReturnCode.ALL_GOOD;
     }

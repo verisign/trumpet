@@ -3,7 +3,9 @@ package com.verisign.vscc.hdfs.trumpet.kafka;
 import com.google.common.base.Preconditions;
 import com.verisign.vscc.hdfs.trumpet.utils.TrumpetHelper;
 import kafka.admin.AdminUtils;
+import kafka.admin.RackAwareMode;
 import kafka.message.Message;
+import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.curator.framework.CuratorFramework;
 
@@ -22,19 +24,26 @@ public class KafkaUtils {
     public static final int DEFAULT_NUM_OF_PARTITION = 1;
     public static final int DEFAULT_REPLICATION = 3;
 
-    private static ZkClient fromCurator(CuratorFramework curatorFramework) {
-        ZkClient zkClient1 = new ZkClient(curatorFramework.getZookeeperClient().getCurrentConnectionString(), 10000, 10000);
+
+    private static ZkUtils fromCurator(CuratorFramework curatorFramework) {
+
+        String zkConnect = curatorFramework.getZookeeperClient().getCurrentConnectionString();
+        ZkClient zkClient1 = ZkUtils.createZkClient(zkConnect,10000,10000);
         zkClient1.waitUntilConnected();
-        return zkClient1;
+        ZkUtils zkUtils = ZkUtils.apply(zkClient1, false);
+
+        return zkUtils;
     }
 
     public static List<String> retrieveBrokerListFromZK(final CuratorFramework curatorFramework) throws Exception {
+
         final List<String> brokers = new LinkedList<>();
         List<String> znodes = curatorFramework.getChildren().forPath("/brokers/ids");
         for (String znode : znodes) {
             Map<String, Object> stringObjectMap = TrumpetHelper.toMap(curatorFramework.getData().forPath("/brokers/ids/" + znode));
             brokers.add(stringObjectMap.get("host").toString() + ":" + stringObjectMap.get("port"));
         }
+
         return brokers;
     }
 
@@ -45,25 +54,26 @@ public class KafkaUtils {
     public static void createTopic(String topic, int partitions, int replication, CuratorFramework curatorFramework) {
         Preconditions.checkArgument(partitions > 0);
         Preconditions.checkArgument(replication > 0);
-        ZkClient zkClient = fromCurator(curatorFramework);
+        ZkUtils zkUtils = fromCurator(curatorFramework);
 
         try {
-            AdminUtils.createTopic(zkClient, topic, partitions, replication, new Properties());
+            AdminUtils.createTopic(zkUtils, topic, partitions, replication, new Properties(), RackAwareMode.Disabled$.MODULE$);
         } finally {
-            if (zkClient != null) {
-                zkClient.close();
+            if (zkUtils != null) {
+                zkUtils.close();
             }
         }
     }
 
     public static boolean topicExists(String topic, CuratorFramework curatorFramework) {
-        ZkClient zkClient = fromCurator(curatorFramework);
+
+        ZkUtils zkUtils = null;
         try {
-            zkClient = fromCurator(curatorFramework);
-            return AdminUtils.topicExists(zkClient, topic);
+            zkUtils = fromCurator(curatorFramework);
+            return AdminUtils.topicExists(zkUtils, topic);
         } finally {
-            if (zkClient != null) {
-                zkClient.close();
+            if (zkUtils != null) {
+                zkUtils.close();
             }
         }
     }

@@ -36,8 +36,8 @@ import java.util.*;
  * published txId, but the API requires some boiler plate which is put here to keep
  * the rest of the code reasonably lean.
  *
- * @see https://cwiki.apache.org/confluence/display/KAFKA/0.8.0+SimpleConsumer+Example
- * @see https://gist.github.com/ashrithr/5811266
+ * @link https://cwiki.apache.org/confluence/display/KAFKA/0.8.0+SimpleConsumer+Example
+ * @link https://gist.github.com/ashrithr/5811266
  */
 public class SimpleConsumerHelper {
 
@@ -46,6 +46,8 @@ public class SimpleConsumerHelper {
     private static final int DEFAULT_ZK_PORT = 2181;
     private static final int DEFAULT_SO_TIMEOUT_MS = 10000;
     private static final int DEFAULT_BUFFER_SIZE = 64 * 1024;
+    public static final int DEFAULT_REQUIRED_ACKS = 1;
+
 
     private static long[] getLatestOffsets(SimpleConsumer consumer, String topic, int partition,
                                            long whichTime, String clientName, int numberOfOffests) {
@@ -242,6 +244,10 @@ public class SimpleConsumerHelper {
     }
 
     public static Producer<String, String> getProducer(CuratorFramework curatorFramework) throws Exception {
+        return getProducer(curatorFramework, DEFAULT_REQUIRED_ACKS);
+    }
+
+    public static Producer<String, String> getProducer(CuratorFramework curatorFramework, int requiredAcks) throws Exception {
 
         List<String> brokers = KafkaUtils.retrieveBrokerListFromZK(curatorFramework);
         Preconditions.checkState(brokers.size() > 0);
@@ -249,7 +255,7 @@ public class SimpleConsumerHelper {
         Properties props = new Properties();
         props.put("metadata.broker.list", Joiner.on(",").join(brokers));
         props.put("serializer.class", StringEncoder.class.getCanonicalName());
-        props.put("request.required.acks", "-1");
+        props.put("request.required.acks", String.valueOf(requiredAcks));
 
         LOG.info("Getting a new producer with the following properties: {}", props);
 

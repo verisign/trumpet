@@ -86,10 +86,22 @@ Trumpet is tested with:
 
 # Run it
 
+**Create Topic**
+
+Trumpet is configure to NOT create the topic itself. You have to create the topic manually before startin the server.
+
+In HDP, it would look something like:
+
+```bash
+$ /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --create --zookeeper <zk_ip:2181> --replication-factor 4 --partitions 1 --topic hdfs.inotify.events
+```
+
 Trumpet server is a long running process to run alongside the JournalNode. A [supervisord](http://www.supervisord.org) 
 [config file](https://github.com/verisign/trumpet/tree/master/server/src/main/config/trumpet-server.ini) is also provided if you'd like to use supervisord daemon to launch Trumpet.
 
 Once the RPM (or equivalent) is installed, manually launch Trumpet like this:
+
+**Run Trumpet**
 
 ```bash
 $ /opt/trumpet/server/bin/trumpet.sh --zk.connect <zk_ip:2181>

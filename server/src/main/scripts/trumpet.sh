@@ -70,15 +70,14 @@ MS=128m
 MX=2048m
 
 JAVA_OPTS="$JAVA_OPTS -Xms$MS -Xmx$MX -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:-CMSConcurrentMTEnabled -XX:CMSInitiatingOccupancyFraction=70 -XX:+CMSParallelRemarkEnabled -XX:+DoEscapeAnalysis"
-JAVA_OPTS="$JAVA_OPTS -Dlogback.configurationFile=logback-production.xml"
-#JAVA_OPTS="$JAVA_OPTS -Dlog4j.configuration=log4j-production.properties"
+JAVA_OPTS="$JAVA_OPTS -Dlog4j.configuration=log4j-production.properties"
 
 export HADOOP_USER_CLASSPATH_FIRST=true
 
 export HADOOP_CLASSPATH=$OUR_CLASSPATH
-export HADOOP_OPTS=$JAVA_OPTS
+export YARN_OPTS="-Djava.net.preferIPv4Stack=true $JAVA_OPTS"
 
-command="hadoop jar $LIBDIR/trumpet-server.jar com.verisign.vscc.hdfs.trumpet.server.TrumpetServerCLI"
+command="yarn jar $LIBDIR/trumpet-server.jar com.verisign.vscc.hdfs.trumpet.server.TrumpetServerCLI"
 
 echo $command $@
 $command $@

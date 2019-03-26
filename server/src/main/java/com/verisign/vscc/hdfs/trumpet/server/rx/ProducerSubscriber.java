@@ -1,5 +1,6 @@
 package com.verisign.vscc.hdfs.trumpet.server.rx;
 
+import com.codahale.metrics.Timer;
 import com.verisign.vscc.hdfs.trumpet.dto.EventAndTxId;
 import com.verisign.vscc.hdfs.trumpet.server.exception.EditLogObservableException;
 import com.verisign.vscc.hdfs.trumpet.server.exception.ProducerSubscriberException;
@@ -64,9 +65,11 @@ public class ProducerSubscriber extends Subscriber<Map<String, Object>> {
 
                 KeyedMessage<String, String> message = new KeyedMessage<String, String>(topic, s);
 
-                producer.send(message);
-
-                Metrics.kafkaTransaction().mark();
+                try (Timer.Context context = Metrics.kafkaSender().time();) {
+                    producer.send(message);
+                } finally {
+                    Metrics.kafkaTransaction().mark();
+                }
             }
 
             lastSeenTxId.set(((Number)o.get(EventAndTxId.FIELD_TXID)).longValue());

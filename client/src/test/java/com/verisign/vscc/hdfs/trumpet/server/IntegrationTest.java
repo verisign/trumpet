@@ -3,15 +3,13 @@ package com.verisign.vscc.hdfs.trumpet.server;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import com.verisign.vscc.hdfs.trumpet.client.BoundedTrumpetEventStreamer;
-import com.verisign.vscc.hdfs.trumpet.client.InfiniteTrumpetEventStreamer;
-import com.verisign.vscc.hdfs.trumpet.dto.EventAndTxId;
 import com.verisign.vscc.hdfs.trumpet.kafka.KafkaUtils;
-import com.verisign.vscc.hdfs.trumpet.kafka.SimpleConsumerHelper;
 import kafka.admin.AdminUtils;
+import kafka.admin.RackAwareMode;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServer;
 import kafka.utils.*;
+import kafka.zk.EmbeddedZookeeper;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -28,7 +26,6 @@ import org.apache.hadoop.util.ToolRunner;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -47,6 +44,7 @@ public abstract class IntegrationTest {
     private int brokerId = 0;
     protected int zkConnectionTimeout = (int)DEFAULT_TIMEOUT;
     protected int zkSessionTimeout = (int)DEFAULT_TIMEOUT;
+    private static final String ZKHOST = "127.0.0.1";
 
     protected final Random r = new Random();
 
@@ -107,19 +105,20 @@ public abstract class IntegrationTest {
         trumpetTopicName = "hdfs_inotify_" + r.nextInt(Integer.MAX_VALUE);
 
         // setup Zookeeper
-        zkTestingCluster = new TestingCluster(1);
-        zkTestingCluster.start();
-
-        zkConnect = zkTestingCluster.getConnectString();
-
-        zkClient = new ZkClient(zkConnect, zkConnectionTimeout, zkSessionTimeout, ZKStringSerializer$.MODULE$);
+        EmbeddedZookeeper zkServer = new EmbeddedZookeeper();
+        String zkConnect = ZKHOST + ":" + zkServer.port();
+        ZkClient zkClient = new ZkClient(zkConnect, 30000, 30000, ZKStringSerializer$.MODULE$);
+        ZkUtils zkUtils = ZkUtils.apply(zkClient, false);
 
         // setup Broker
-        int port = TestUtils.choosePort();
-        Properties props = TestUtils.createBrokerConfig(brokerId, port, true);
-        props.put("zookeeper.connect", zkConnect);
+        int port = TestUtils.RandomPort();
 
-        KafkaConfig config = new KafkaConfig(props);
+        Properties brokerProps = new Properties();
+        brokerProps.setProperty("zookeeper.connect", zkConnect);
+        brokerProps.setProperty("broker.id", "0");
+        brokerProps.setProperty("port", String.valueOf(port));
+        KafkaConfig config = new KafkaConfig(brokerProps);
+
         Time mock = new MockTime();
         kafkaServer = TestUtils.createServer(config, mock);
         servers.add(kafkaServer);
@@ -132,7 +131,7 @@ public abstract class IntegrationTest {
         assertTrue("Failed to connect to Zookeeper " + zkConnect, curatorFramework.blockUntilConnected(60, TimeUnit.SECONDS));
 
         if (!KafkaUtils.topicExists(trumpetTopicName, curatorFramework)) {
-            AdminUtils.createTopic(zkClient, trumpetTopicName, 1, 1, new Properties());
+            AdminUtils.createTopic(zkUtils, trumpetTopicName, 1, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
             TestUtils.waitUntilMetadataIsPropagated(scala.collection.JavaConversions.asScalaBuffer(servers), trumpetTopicName, 0, TimeUnit.SECONDS.toMillis(60));
         }
 
@@ -214,7 +213,7 @@ public abstract class IntegrationTest {
             @Nullable
             @Override
             public String apply(KafkaServer input) {
-                return input.socketServer().host() + ":" + input.socketServer().port();
+                return input.socketServer().config().hostName() + ":" + input.socketServer().config().port();
             }
         }));
     }

@@ -8,6 +8,8 @@ import kafka.consumer.KafkaStream;
 import kafka.message.MessageAndMetadata;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scala.collection.IterableLike$class;
 
 import static com.verisign.vscc.hdfs.trumpet.utils.TrumpetHelper.toMap;
@@ -19,6 +21,8 @@ import java.util.*;
  * Created by bperroud on 03.06.15.
  */
 public class InfiniteTrumpetEventStreamer implements Iterable<Map<String, Object>>, AutoCloseable {
+
+    private static Logger LOG = LoggerFactory.getLogger(InfiniteTrumpetEventStreamer.class);
 
     private static final int NUMBER_OF_THREADS = 1;
     public static final int PARTITION_NUMBER = 0;
@@ -37,11 +41,14 @@ public class InfiniteTrumpetEventStreamer implements Iterable<Map<String, Object
         this(client, topicName, initialTxId, null, InfiniteTrumpetEventStreamer.class.getCanonicalName() + "-" + topicName + "-" + UUID.randomUUID());
     }
 
+    public InfiniteTrumpetEventStreamer(CuratorFramework client, String topicName, String groupId) throws Exception {
+        this(client, topicName, null, null, groupId);
+    }
+
     public InfiniteTrumpetEventStreamer(CuratorFramework client, String topicName, Long initialTxId, Long lastTxId, String groupId) throws Exception {
 
         this.client = client;
         this.topicName = topicName;
-        this.initialTxId = initialTxId;
         this.lastTxId = lastTxId;
         this.groupId = groupId;
 
@@ -54,11 +61,15 @@ public class InfiniteTrumpetEventStreamer implements Iterable<Map<String, Object
             } else {
                 client.setData().forPath(zkPath, data);
             }
+        } else {
+            initialTxId = 0L;
         }
+
+        this.initialTxId = initialTxId;
     }
 
     public InfiniteTrumpetEventStreamer(CuratorFramework client, String topicName) throws Exception {
-        this(client, topicName, null);
+        this(client, topicName, (Long)null);
     }
 
     @Override
@@ -87,6 +98,7 @@ public class InfiniteTrumpetEventStreamer implements Iterable<Map<String, Object
         private ConsumerIterator<byte[], byte[]> it;
 
         private long currentOffset = initialTxId;
+        private MessageAndMetadata<byte[], byte[]> headMessage = null;
 
         @Override
         public boolean hasNext() {
@@ -104,8 +116,15 @@ public class InfiniteTrumpetEventStreamer implements Iterable<Map<String, Object
             init();
 
             try {
-                final MessageAndMetadata<byte[], byte[]> message = it.next();
+                final MessageAndMetadata<byte[], byte[]> message;
+                if (headMessage != null) {
+                    message = headMessage;
+                    headMessage = null;
+                } else {
+                    message = it.next();
+                }
                 currentOffset = message.offset();
+                LOG.trace("EventStreamIterator.next.offset = {}", currentOffset);
                 final Map<String, Object> o = toMap(message.message());
                 return o;
             } catch (IOException e) {
@@ -128,16 +147,16 @@ public class InfiniteTrumpetEventStreamer implements Iterable<Map<String, Object
                         final List<KafkaStream<byte[], byte[]>> streams = consumerMap.get(getTopicName());
 
                         KafkaStream<byte[], byte[]> kafkaStream = streams.get(PARTITION_NUMBER);
+                        it = kafkaStream.iterator();
 
                         // KafkaStream is a IterableLike, and the head function is a scala function.
                         // This trick is needed to be able to call the function. See
                         // http://lampwww.epfl.ch/~michelou/scala/using-scala-from-java.html for more details.
-                        MessageAndMetadata<byte[], byte[]> message = (MessageAndMetadata<byte[], byte[]>)IterableLike$class.head(kafkaStream);
-                        if (message != null) {
-                            currentOffset = message.offset();
-//                            System.err.println("IterableLike$class.head(kafkaStream).offset = " + currentOffset);
+                        headMessage = (MessageAndMetadata<byte[], byte[]>)IterableLike$class.head(kafkaStream);
+                        if (headMessage != null) {
+                            currentOffset = headMessage.offset();
+                            LOG.trace("IterableLike$class.head(kafkaStream).offset = {}", currentOffset);
                         }
-                        it = kafkaStream.iterator();
                     }
                 }
             }

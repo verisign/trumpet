@@ -6,7 +6,7 @@ import com.verisign.vscc.hdfs.trumpet.server.TrumpetServer;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.codahale.metrics.MetricRegistry.*;
+import static com.codahale.metrics.MetricRegistry.name;
 
 public class Metrics {
 
@@ -23,6 +23,7 @@ public class Metrics {
     private static final Meter transactionInotifyMeter = getRegistry().meter(name(TrumpetServer.class, "transactions", "inotify"));
     private static final Meter transactionAllMeter = getRegistry().meter(name(TrumpetServer.class, "transactions", "all"));
     private static final Meter transactionKafkaMeter = getRegistry().meter(name(TrumpetServer.class, "transactions", "kafka"));
+    private static final Timer kafkaSendTimer = getRegistry().timer(name(TrumpetLeader.class, "kafka", "send"));
     private static final Timer sleepTimer = getRegistry().timer(name(TrumpetLeader.class, "sleep"));
     private static final Timer processingTimer = getRegistry().timer(name(TrumpetLeader.class, "processing"));
     private static final Timer editLogFileTimer = getRegistry().timer(name(TrumpetLeader.class, "editlogfile"));
@@ -77,6 +78,10 @@ public class Metrics {
         return transactionKafkaMeter;
     }
 
+    public static Timer kafkaSender() {
+        return kafkaSendTimer;
+    }
+
     public static Timer sleep() {
         return sleepTimer;
     }
@@ -92,4 +97,9 @@ public class Metrics {
     public static Meter noTxFileFound() {
         return noTxFileFoundMeter;
     }
+
+    public static void close() {
+        getRegistry().remove(uptime);
+    }
+
 }

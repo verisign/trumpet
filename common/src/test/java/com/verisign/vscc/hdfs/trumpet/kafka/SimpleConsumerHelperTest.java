@@ -2,6 +2,7 @@ package com.verisign.vscc.hdfs.trumpet.kafka;
 
 import com.google.common.base.Preconditions;
 import kafka.admin.AdminUtils;
+import kafka.admin.RackAwareMode;
 import kafka.javaapi.producer.Producer;
 import kafka.message.Message;
 import kafka.utils.TestUtils;
@@ -25,12 +26,12 @@ public class SimpleConsumerHelperTest extends SetupSimpleKafkaCluster {
         final String value = "value1234";
         final int partition = 0;
 
-        if (!KafkaUtils.topicExists(topic, curatorFramework)) {
-            AdminUtils.createTopic(zkClient, topic, 1, 1, new Properties());
+        if (! AdminUtils.topicExists(zkUtils, topic)) {
+            AdminUtils.createTopic(zkUtils, topic, 1, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
             TestUtils.waitUntilMetadataIsPropagated(scala.collection.JavaConversions.asScalaBuffer(servers), topic, 0, 5000);
         }
 
-        Preconditions.checkState(KafkaUtils.topicExists(topic, curatorFramework));
+        Preconditions.checkState(AdminUtils.topicExists(zkUtils,topic));
 
         Producer<String, String> producer = SimpleConsumerHelper.getProducer(curatorFramework);
 
@@ -45,7 +46,7 @@ public class SimpleConsumerHelperTest extends SetupSimpleKafkaCluster {
         byte[] keyba = new byte[keyBB.limit()];
         keyBB.get(keyba);
 
-        System.out.println("Key:" + new String(keyba));
+        LOG.info("Key:" + new String(keyba));
         Assert.assertArrayEquals(key.getBytes(), keyba);
 
         ByteBuffer payloadBB = message.payload();
@@ -65,7 +66,8 @@ public class SimpleConsumerHelperTest extends SetupSimpleKafkaCluster {
         final int partition = 0;
 
         if (!KafkaUtils.topicExists(topic, curatorFramework)) {
-            AdminUtils.createTopic(zkClient, topic, 1, 1, new Properties());
+            //AdminUtils.createTopic(zkClient, topic, 1, 1, new Properties());
+            AdminUtils.createTopic(zkUtils, topic, 1, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
             TestUtils.waitUntilMetadataIsPropagated(scala.collection.JavaConversions.asScalaBuffer(servers), topic, 0, 5000);
         }
 
@@ -104,7 +106,5 @@ public class SimpleConsumerHelperTest extends SetupSimpleKafkaCluster {
         Assert.assertFalse(it.hasNext());
 
     }
-
-
-
 }
+

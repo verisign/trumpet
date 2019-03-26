@@ -54,6 +54,7 @@ public class TrumpetLeader extends LeaderSelectorListenerAdapter implements Lead
     private final String topic;
     private final EditLogDir editLogDir;
     private final long baseThrottleTimeMs;
+    private final int kafkaRequiredAcks;
 
     private final DistributedFileSystem dfs;
 
@@ -64,15 +65,16 @@ public class TrumpetLeader extends LeaderSelectorListenerAdapter implements Lead
 
     public TrumpetLeader(CuratorFramework curatorFramework, DistributedFileSystem dfs, String topic, EditLogDir editLogDir)
             throws IOException {
-        this(curatorFramework, dfs, topic, editLogDir, DEFAULT_BASE_THROTTLE_TIME_MS);
+        this(curatorFramework, dfs, topic, editLogDir, SimpleConsumerHelper.DEFAULT_REQUIRED_ACKS, DEFAULT_BASE_THROTTLE_TIME_MS);
     }
 
-    public TrumpetLeader(CuratorFramework curatorFramework, DistributedFileSystem dfs, String topic, EditLogDir editLogDir, long baseThrottleTimeMs)
+    public TrumpetLeader(CuratorFramework curatorFramework, DistributedFileSystem dfs, String topic, EditLogDir editLogDir, int kafkaRequiredAcks, long baseThrottleTimeMs)
             throws IOException {
         this.curatorFramework = curatorFramework;
         this.dfs = dfs;
         this.topic = topic;
         this.editLogDir = editLogDir;
+        this.kafkaRequiredAcks = kafkaRequiredAcks;
         this.baseThrottleTimeMs = baseThrottleTimeMs;
     }
 
@@ -107,7 +109,7 @@ public class TrumpetLeader extends LeaderSelectorListenerAdapter implements Lead
             File editsLogFile = null;
             long startTxId = 0L;
 
-            producer = getProducer(curatorFramework);
+            producer = getProducer(curatorFramework, kafkaRequiredAcks);
 
             while (run) {
 
@@ -216,7 +218,7 @@ public class TrumpetLeader extends LeaderSelectorListenerAdapter implements Lead
                         long sleepMs = Math.min(MAX_THROTTLE_TIME_MS,
                                 baseThrottleTimeMs * (this.random.nextInt(throttleCounter) + 1));
 
-                        LOG.debug("From tx ({}) > to tx ({}), sleeping for {} ms.", startTxId, lastPublishedTxId.get(), sleepMs);
+                        LOG.debug("From tx ({}) > to tx ({}) or sameFile={}, sleeping for {} ms.", startTxId, lastPublishedTxId.get(), sameFile, sleepMs);
 
                         // Measure sleep time
                         Timer.Context sleepTimer = Metrics.sleep().time();
@@ -245,9 +247,13 @@ public class TrumpetLeader extends LeaderSelectorListenerAdapter implements Lead
         }
     }
 
-    @VisibleForTesting
-    public Producer getProducer(CuratorFramework curatorFramework) throws Exception {
+    private Producer getProducer(CuratorFramework curatorFramework) throws Exception {
         return SimpleConsumerHelper.getProducer(curatorFramework);
+    }
+
+    @VisibleForTesting
+    public Producer getProducer(CuratorFramework curatorFramework, int requiredAcks) throws Exception {
+        return SimpleConsumerHelper.getProducer(curatorFramework, requiredAcks);
     }
 
     @VisibleForTesting

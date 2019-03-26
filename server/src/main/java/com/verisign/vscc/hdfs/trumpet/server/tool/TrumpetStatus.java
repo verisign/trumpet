@@ -10,6 +10,8 @@ import org.apache.curator.framework.recipes.leader.LeaderSelectorListenerAdapter
 import org.apache.curator.framework.recipes.leader.Participant;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.ToolRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 
@@ -33,7 +35,7 @@ public class TrumpetStatus extends AbstractAppLauncher {
         boolean hasParticipants = false;
         for (Participant p : leaderSelector.getParticipants()) {
             InetAddress inetAddress = InetAddresses.forString(p.getId());
-            System.out.println(inetAddress.getHostName() + "(" + inetAddress.getHostAddress() + ") is " + (p.isLeader() ? "leader" : "participant"));
+            LOG.info(inetAddress.getHostName() + "(" + inetAddress.getHostAddress() + ") is " + (p.isLeader() ? "leader" : "participant"));
             hasParticipants = true;
         }
 

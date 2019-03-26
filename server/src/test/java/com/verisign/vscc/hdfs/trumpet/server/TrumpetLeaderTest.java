@@ -49,7 +49,7 @@ public class TrumpetLeaderTest extends TestCase {
         ProducerSubscriber producerSubscriber = mock(ProducerSubscriber.class);
 
         doReturn(producer).when(trumpetLeader)
-                .getProducer(eq(curatorFramework));
+                .getProducer(eq(curatorFramework), anyInt());
 
         doReturn(editLogObservable).when(trumpetLeader)
                 .getEditLogObservable(any(File.class), eq(TX_ID_1));
@@ -88,7 +88,7 @@ public class TrumpetLeaderTest extends TestCase {
 
         DistributedFileSystem dfs = mock(DistributedFileSystem.class);
 
-        final TrumpetLeader trumpetLeader = spy(new TrumpetLeader(curatorFramework, dfs, topic, editLogDir, 200));
+        final TrumpetLeader trumpetLeader = spy(new TrumpetLeader(curatorFramework, dfs, topic, editLogDir, 1, 200));
 
         Producer producer = mock(Producer.class);
         File file1 = mock(File.class);
@@ -162,7 +162,7 @@ public class TrumpetLeaderTest extends TestCase {
         ProducerSubscriber producerSubscriber = spy(new ProducerSubscriber(topic, producer, atomicLong));
 
         doReturn(producer).when(trumpetLeader)
-                .getProducer(eq(curatorFramework));
+                .getProducer(eq(curatorFramework), anyInt());
 
         doReturn(editLogObservable1).when(trumpetLeader)
                 .getEditLogObservable(eq(file1), eq(TX_ID_1 + 1));

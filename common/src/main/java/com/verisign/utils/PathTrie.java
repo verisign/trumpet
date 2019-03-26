@@ -32,12 +32,15 @@ import java.util.*;
 @NotThreadSafe
 public class PathTrie<T> {
 
-    private static final String PATH_SEPARATOR = File.separator;
-
     /**
      * the root node of PathTrie
      */
     private final TrieNode<T> rootNode;
+
+    /**
+     * the path separator, but default File.separator
+     */
+    private final String pathSeparator;
 
     static class TrieNode<U> {
         U payload;
@@ -145,8 +148,13 @@ public class PathTrie<T> {
      * construct a new PathTrie with
      * a root node of /
      */
-    public PathTrie() {
+    public PathTrie(String pathSeparator) {
+        this.pathSeparator = pathSeparator;
         this.rootNode = new TrieNode(null);
+    }
+
+    public PathTrie() {
+        this(File.separator);
     }
 
     /**
@@ -174,8 +182,8 @@ public class PathTrie<T> {
         parent.setPayload(payload);
     }
 
-    private static String[] splitPath(final String path) {
-        final String[] pathComponents = path.split(PATH_SEPARATOR);
+    private String[] splitPath(final String path) {
+        final String[] pathComponents = path.split(pathSeparator);
         if (pathComponents.length <= 1) {
             throw new IllegalArgumentException("Invalid path " + path);
         }
@@ -193,7 +201,7 @@ public class PathTrie<T> {
         if (path == null) {
             return null;
         }
-        if (PATH_SEPARATOR.equals(path)) {
+        if (pathSeparator.equals(path)) {
             return null;
         }
         final String[] pathComponents = splitPath(path);
@@ -223,7 +231,7 @@ public class PathTrie<T> {
         }
 
         for (int j = 0; j < (lastindex + 1); j++) {
-            sb.append(PATH_SEPARATOR).append(components.get(j));
+            sb.append(pathSeparator).append(components.get(j));
         }
         return new java.util.AbstractMap.SimpleEntry<String, T>(sb.toString(), lastPayload);
     }
@@ -265,7 +273,7 @@ public class PathTrie<T> {
             if (parent.hasPayload()) {
                 result.add(new java.util.AbstractMap.SimpleEntry<String, T>(sb.toString(), parent.getPayload()));
             }
-            sb.append(PATH_SEPARATOR);
+            sb.append(pathSeparator);
             sb.append(part);
             parent = parent.getChild(part);
             if (parent == null) {

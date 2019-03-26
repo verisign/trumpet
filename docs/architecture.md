@@ -50,6 +50,11 @@ $ $KAFKA_HOME/bin/kafka-topic.sh --create --zookeeper <zk_ip:2181> --replication
 $ kafka-topics --create --zookeeper <zk_ip:2181> --replication-factor 4 --partitions 1 --topic hdfs.inotify.events
 ```
 
+* HDP with Kafka package installed
+```bash
+$ /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --create --zookeeper <zk_ip:2181> --replication-factor 4 --partitions 1 --topic hdfs.inotify.events
+```
+
 Of course the scalability of the client applications reading the transactions will be influenced by 
 the scalability of your Kafka cluster. Trumpet guarantees **exactly once** delivery of the HDFS event, 
 but does not guarantee any transaction or reader persistence to the client application. 

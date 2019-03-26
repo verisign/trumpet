@@ -10,6 +10,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.ToolRunner;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -22,7 +24,6 @@ public class PeekInotifyEvents extends AbstractAppLauncher {
 
     private static final String OPTION_NUMBER_OF_EVENTS = "numevents";
     private static final int DEFAULT_NUMBER_OF_EVENTS = 1;
-
     private final ObjectMapper mapper = new ObjectMapper();
 
     public static void main(String[] args) throws Exception {
@@ -56,11 +57,11 @@ public class PeekInotifyEvents extends AbstractAppLauncher {
                 String srcPath = srcPathNode == null ? null : srcPathNode.getValueAsText();
                 String dstPath = dstPathNode == null ? null : dstPathNode.getValueAsText();
 
-                System.out.print("INotify Event " + currentTxId + " is of type " + eventType + " about");
-                if (path != null) System.out.print(" path:" + path);
-                if (srcPath != null) System.out.print(" srcPath:" + srcPath);
-                if (dstPath != null) System.out.print(" dstPath:" + dstPath);
-                System.out.println();
+                LOG.info("INotify Event " + currentTxId + " is of type " + eventType + " about");
+                if (path != null) LOG.info(" path:" + path);
+                if (srcPath != null) LOG.info(" srcPath:" + srcPath);
+                if (dstPath != null) LOG.info(" dstPath:" + dstPath);
+                LOG.info("");
 
                 if (LOG.isDebugEnabled()) {
                     bb.rewind();
@@ -71,7 +72,7 @@ public class PeekInotifyEvents extends AbstractAppLauncher {
                 }
 
             } catch (org.codehaus.jackson.JsonParseException e) {
-                System.err.println("Malformated message..." + new String(bb.array(), Charset.defaultCharset()));
+                LOG.error("Malformated message..." + new String(bb.array(), Charset.defaultCharset()));
             }
         }
 

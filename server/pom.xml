@@ -3,18 +3,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-       <groupId>com.verisign.vscc.trumpet</groupId>
+        <groupId>com.verisign.vscc.trumpet</groupId>
         <artifactId>trumpet-parent</artifactId>
-        <version>2.3.0-SNAPSHOT</version>
+        <version>2.4.2</version>
     </parent>
 
     <artifactId>trumpet-server</artifactId>
     <name>Trumpet Server</name>
     <packaging>jar</packaging>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>2.4.2</version>
 
-    <description>
-    </description>
+    <description>http://verisign.github.io/trumpet/</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -32,16 +31,16 @@
             <artifactId>metrics-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-graphite</artifactId>
-            <version>${metrics-core.version}</version>
+            <groupId>com.github.davidb</groupId>
+            <artifactId>metrics-influxdb</artifactId>
+            <version>0.9.3</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <scope>provided</scope>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-hdfs</artifactId>
         </dependency>
@@ -52,13 +51,17 @@
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.10</artifactId>
-            <version>0.8.2.1</version>
+            <artifactId>kafka_2.11</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.101tec</groupId>
+                    <artifactId>zkclient</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.10</artifactId>
-            <version>0.8.2.1</version>
+            <artifactId>kafka_2.11</artifactId>
             <classifier>test</classifier>
             <scope>test</scope>
         </dependency>
@@ -82,14 +85,6 @@
         <dependency>
             <groupId>io.reactivex</groupId>
             <artifactId>rxjava</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
         </dependency>
     </dependencies>
 
@@ -165,8 +160,8 @@
                 <rpm.username>hdfs</rpm.username>
                 <rpm.groupname>hadoop</rpm.groupname>
                 <rpm.logdirname>logs</rpm.logdirname>
-                <rpm.targetos>el6</rpm.targetos>
-                <rpm.targetArch>x86_64</rpm.targetArch>
+                <rpm.targetos></rpm.targetos>
+                <rpm.targetArch>noarch</rpm.targetArch>
                 <rpm.path>${rpm.apprefix}/server</rpm.path>
                 <rpm.logdirpath>${rpm.apprefix}/${rpm.logdirname}</rpm.logdirpath>
                 <rpm.appname>${project.artifactId}</rpm.appname>
@@ -191,7 +186,7 @@
                             <distribution>${rpm.distribution}</distribution>
                             <group>${rpm.group}</group>
                             <needarch>${rpm.targetArch}</needarch>
-                            <classifier>${rpm.targetos}.${rpm.targetArch}</classifier>
+                            <classifier>${rpm.targetos}</classifier>
                             <name>${rpm.appname}</name>
                             <version>
                                 ${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}

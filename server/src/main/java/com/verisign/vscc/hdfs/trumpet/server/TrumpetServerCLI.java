@@ -31,6 +31,9 @@ public class TrumpetServerCLI extends AbstractAppLauncher {
 
     private final CountDownLatch latch = new CountDownLatch(1);
     private boolean initialized = false;
+    private GraphiteReporter graphiteReporter;
+    private TrumpetServer trumpetServer;
+    private JmxReporter jmxReporter;
 
     private ScheduledReporter metricsReporter;
     private TrumpetServer trumpetServer;

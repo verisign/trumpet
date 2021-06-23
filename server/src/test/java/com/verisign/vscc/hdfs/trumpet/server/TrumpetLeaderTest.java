@@ -1,26 +1,40 @@
 package com.verisign.vscc.hdfs.trumpet.server;
 
-import com.verisign.vscc.hdfs.trumpet.dto.EventAndTxId;
-import com.verisign.vscc.hdfs.trumpet.server.editlog.EditLogDir;
-import com.verisign.vscc.hdfs.trumpet.server.rx.EditLogObservable;
-import com.verisign.vscc.hdfs.trumpet.server.rx.ProducerSubscriber;
-import junit.framework.TestCase;
-import kafka.javaapi.producer.Producer;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.leader.CancelLeadershipException;
-import org.apache.hadoop.hdfs.DistributedFileSystem;
-import org.junit.Assert;
-import org.junit.Test;
-import rx.Subscriber;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyMap;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.mockito.Mockito.*;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.leader.CancelLeadershipException;
+import org.apache.hadoop.hdfs.DistributedFileSystem;
+import org.apache.kafka.clients.producer.Producer;
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.verisign.vscc.hdfs.trumpet.dto.EventAndTxId;
+import com.verisign.vscc.hdfs.trumpet.server.editlog.EditLogDir;
+import com.verisign.vscc.hdfs.trumpet.server.rx.EditLogObservable;
+import com.verisign.vscc.hdfs.trumpet.server.rx.ProducerSubscriber;
+
+import junit.framework.TestCase;
+import rx.Subscriber;
 
 public class TrumpetLeaderTest extends TestCase {
 
@@ -49,7 +63,7 @@ public class TrumpetLeaderTest extends TestCase {
         ProducerSubscriber producerSubscriber = mock(ProducerSubscriber.class);
 
         doReturn(producer).when(trumpetLeader)
-                .getProducer(eq(curatorFramework), anyInt());
+                .getProducer(eq(curatorFramework));
 
         doReturn(editLogObservable).when(trumpetLeader)
                 .getEditLogObservable(any(File.class), eq(TX_ID_1));
@@ -88,7 +102,7 @@ public class TrumpetLeaderTest extends TestCase {
 
         DistributedFileSystem dfs = mock(DistributedFileSystem.class);
 
-        final TrumpetLeader trumpetLeader = spy(new TrumpetLeader(curatorFramework, dfs, topic, editLogDir, 1, 200));
+        final TrumpetLeader trumpetLeader = spy(new TrumpetLeader(curatorFramework, dfs, topic, editLogDir, 200));
 
         Producer producer = mock(Producer.class);
         File file1 = mock(File.class);
@@ -162,14 +176,13 @@ public class TrumpetLeaderTest extends TestCase {
         ProducerSubscriber producerSubscriber = spy(new ProducerSubscriber(topic, producer, atomicLong));
 
         doReturn(producer).when(trumpetLeader)
-                .getProducer(eq(curatorFramework), anyInt());
+                .getProducer(eq(curatorFramework));
 
         doReturn(editLogObservable1).when(trumpetLeader)
                 .getEditLogObservable(eq(file1), eq(TX_ID_1 + 1));
         doReturn(editLogObservable2).when(trumpetLeader)
                 .getEditLogObservable(eq(file2), eq(TX_ID_2 + 1));
-        doReturn(editLogObservable3)
-                .doReturn(editLogObservable4)
+        doReturn(editLogObservable3).doReturn(null)
                 .when(trumpetLeader)
                 .getEditLogObservable(eq(file3), eq(TX_ID_3 + 1));
 

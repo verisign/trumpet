@@ -5,13 +5,13 @@
     <parent>
         <groupId>com.verisign.vscc.trumpet</groupId>
         <artifactId>trumpet-parent</artifactId>
-        <version>2.4.2</version>
+        <version>3.1.1</version>
     </parent>
 
     <artifactId>trumpet-client</artifactId>
     <name>Trumpet Client</name>
     <packaging>jar</packaging>
-    <version>2.4.2</version>
+    <version>3.1.1</version>
 
     <description>
         Trumpet Client libraries and helpers.
@@ -61,7 +61,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.11</artifactId>
+            <artifactId>kafka_2.13</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>com.101tec</groupId>
@@ -71,7 +71,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.11</artifactId>
+            <artifactId>kafka_2.13</artifactId>
             <classifier>test</classifier>
             <scope>test</scope>
         </dependency>

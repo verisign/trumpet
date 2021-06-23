@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
@@ -20,21 +19,21 @@ import java.util.concurrent.TimeUnit;
  * If no modification found while new transactions occurs,
  * it closes the parent and shutdown the timer properly.
  */
-public class WatchDog extends TimerTask implements Closeable {
+public class EditLogDirWatchDog extends TimerTask implements Closeable {
 
-    private static Logger LOG = LoggerFactory.getLogger(WatchDog.class);
+    private static Logger LOG = LoggerFactory.getLogger(EditLogDirWatchDog.class);
 
     private final DistributedFileSystem dfs;
     private final EditLogDir editLogDir;
     private final AutoCloseable parent;
 
-    private final Timer t = new Timer("Timer for " + WatchDog.class.getName());
+    private final Timer t = new Timer("Timer for " + EditLogDirWatchDog.class.getName());
 
     private long lastSeenTxId = -1L;
     private long lastRunTimeMs = 0L;
     private long exceptionCount = 0;
 
-    public WatchDog(DistributedFileSystem dfs, EditLogDir editLogDir, AutoCloseable parent) {
+    public EditLogDirWatchDog(DistributedFileSystem dfs, EditLogDir editLogDir, AutoCloseable parent) {
         super();
         this.dfs = dfs;
         this.editLogDir = editLogDir;

@@ -5,13 +5,13 @@
     <parent>
         <groupId>com.verisign.vscc.trumpet</groupId>
         <artifactId>trumpet-parent</artifactId>
-        <version>2.4.2</version>
+        <version>3.1.1</version>
     </parent>
 
     <artifactId>trumpet-server</artifactId>
     <name>Trumpet Server</name>
     <packaging>jar</packaging>
-    <version>2.4.2</version>
+    <version>3.1.1</version>
 
     <description>http://verisign.github.io/trumpet/</description>
 
@@ -40,10 +40,19 @@
             <artifactId>guava</artifactId>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-hdfs</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+        </dependency>
+        <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-hdfs-client</artifactId>
+    </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-minicluster</artifactId>
@@ -51,7 +60,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.11</artifactId>
+            <artifactId>kafka_2.13</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>com.101tec</groupId>
@@ -61,7 +70,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.11</artifactId>
+            <artifactId>kafka_2.13</artifactId>
             <classifier>test</classifier>
             <scope>test</scope>
         </dependency>
@@ -120,7 +129,7 @@
                     <outputDirectory>${project.build.directory}/lib</outputDirectory>
                     <!-- See here for more details https://gist.github.com/killerwhile/95c49fb0af0e938de222 -->
                     <excludeArtifactIds>
-                        activation,ant-contrib,aopalliance,asm,avro,avro-compiler,cloudera-jets3t,commons-beanutils,commons-beanutils-core,commons-cli,commons-codec,commons-collections,commons-compress,commons-configuration,commons-daemon,commons-digester,commons-el,commons-httpclient,commons-io,commons-lang,commons-logging,commons-math,commons-net,datafu,guice,guice-servlet,hadoop-annotations,hadoop-ant,hadoop-auth,hadoop-common,hadoop-core,hadoop-examples,hadoop-fairscheduler,hadoop-hdfs,hadoop-lzo-cdh4,hadoop-test,hadoop-tools,hadoop-yarn-api,hadoop-yarn-applications-distributedshell,hadoop-yarn-applications-unmanaged-am-launcher,hadoop-yarn-client,hadoop-yarn-common,hadoop-yarn-server-common,hadoop-yarn-server-nodemanager,hadoop-yarn-server-resourcemanager,hadoop-yarn-server-tests,hadoop-yarn-server-web-proxy,hadoop-yarn-site,hsqldb,hue-plugins,jackson-core-asl,jackson-jaxrs,jackson-mapper-asl,jackson-xc,jasper-compiler,jasper-runtime,javax.inject,jaxb-api,jaxb-impl,jersey-core,jersey-guice,jersey-json,jersey-server,jets3t,jettison,jetty,jetty-util,jline,jsch,jsp-api,jsr305,junit,kfs,log4j,mockito-all,netty,paranamer,parquet-avro,parquet-cascading,parquet-column,parquet-common,parquet-encoding,parquet-format,parquet-generator,parquet-hadoop,parquet-hive,parquet-pig,parquet-pig-bundle,parquet-scrooge,parquet-test-hadoop2,parquet-thrift,pig,protobuf-java,servlet-api,slf4j-api,slf4j-log4j12,snappy-java,stax-api,xmlenc,xz,zookeeper
+                        activation,ant-contrib,aopalliance,asm,avro,avro-compiler,cloudera-jets3t,commons-beanutils,commons-beanutils-core,commons-cli,commons-codec,commons-collections,commons-compress,commons-configuration,commons-daemon,commons-digester,commons-el,commons-httpclient,commons-io,commons-lang,commons-logging,commons-math,commons-net,datafu,guice,guice-servlet,hadoop-annotations,hadoop-ant,hadoop-auth,hadoop-common,hadoop-core,hadoop-examples,hadoop-fairscheduler,hadoop-hdfs,hadoop-lzo-cdh4,hadoop-test,hadoop-tools,hadoop-yarn-api,hadoop-yarn-applications-distributedshell,hadoop-yarn-applications-unmanaged-am-launcher,hadoop-yarn-client,hadoop-yarn-common,hadoop-yarn-server-common,hadoop-yarn-server-nodemanager,hadoop-yarn-server-resourcemanager,hadoop-yarn-server-tests,hadoop-yarn-server-web-proxy,hadoop-yarn-site,hsqldb,hue-plugins,jackson-core-asl,jackson-jaxrs,jackson-mapper-asl,jackson-xc,jasper-compiler,jasper-runtime,javax.inject,jaxb-api,jaxb-impl,jersey-core,jersey-guice,jersey-json,jersey-server,jets3t,jettison,jetty,jetty-util,jline,jsch,jsp-api,jsr305,junit,kfs,log4j,mockito-all,netty,paranamer,parquet-avro,parquet-cascading,parquet-column,parquet-common,parquet-encoding,parquet-format,parquet-generator,parquet-hadoop,parquet-hive,parquet-pig,parquet-pig-bundle,parquet-scrooge,parquet-test-hadoop2,parquet-thrift,pig,protobuf-java,servlet-api,slf4j-api,slf4j-log4j12,snappy-java,stax-api,xmlenc,xz
                     </excludeArtifactIds>
                     <overWriteReleases>false</overWriteReleases>
                     <overWriteSnapshots>false</overWriteSnapshots>
@@ -153,7 +162,7 @@
                 <activeByDefault>false</activeByDefault>
             </activation>
             <properties>
-                <rpm.copyright>2015, Verisign</rpm.copyright>
+                <rpm.copyright>2018, Verisign</rpm.copyright>
                 <rpm.group>Application/VSCC</rpm.group>
                 <rpm.rootprefix>/opt/trumpet</rpm.rootprefix>
                 <rpm.apprefix>${rpm.rootprefix}</rpm.apprefix>

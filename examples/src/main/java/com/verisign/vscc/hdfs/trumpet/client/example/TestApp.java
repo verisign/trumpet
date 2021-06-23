@@ -2,7 +2,7 @@ package com.verisign.vscc.hdfs.trumpet.client.example;
 
 import com.google.common.collect.Sets;
 import com.verisign.vscc.hdfs.trumpet.AbstractAppLauncher;
-import com.verisign.vscc.hdfs.trumpet.client.InfiniteTrumpetEventStreamer;
+import com.verisign.vscc.hdfs.trumpet.client.InfiniteTrumpetEventConsumer;
 import com.verisign.vscc.hdfs.trumpet.dto.EventAndTxId;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -10,7 +10,8 @@ import org.apache.hadoop.util.ToolRunner;
 import rx.functions.Action1;
 import rx.functions.Func1;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
 
 public class TestApp extends AbstractAppLauncher {
 
@@ -24,9 +25,9 @@ public class TestApp extends AbstractAppLauncher {
     @Override
     protected int internalRun() throws Exception {
 
-        InfiniteTrumpetEventStreamer trumpetEventStreamer = new InfiniteTrumpetEventStreamer(getCuratorFrameworkKafka(), getTopic());
+        InfiniteTrumpetEventConsumer trumpetEventConsumer = new InfiniteTrumpetEventConsumer(getCuratorFrameworkKafka(), getTopic());
 
-        rx.Observable.from(trumpetEventStreamer)
+        rx.Observable.from(trumpetEventConsumer)
 
                     /*
                      * Keep only events of type CREATE

@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by bperroud on 8/15/15.
  */
-public class WatchDogTest extends TestCase {
+public class EditLogDirWatchDogTest extends TestCase {
 
     @Test
     public void test1() throws Exception {
@@ -42,7 +42,7 @@ public class WatchDogTest extends TestCase {
 
         AutoCloseable autoCloseable = Mockito.mock(AutoCloseable.class);
 
-        WatchDog watchDog = Mockito.spy(new WatchDog(dfs, editLogDir, autoCloseable));
+        EditLogDirWatchDog watchDog = Mockito.spy(new EditLogDirWatchDog(dfs, editLogDir, autoCloseable));
 
         Assert.assertEquals(-1L, watchDog.getLastSeenTxId());
 

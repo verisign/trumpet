@@ -5,13 +5,13 @@
     <parent>
         <groupId>com.verisign.vscc.trumpet</groupId>
         <artifactId>trumpet-parent</artifactId>
-        <version>2.4.2</version>
+        <version>3.1.1</version>
     </parent>
 
     <artifactId>trumpet-examples</artifactId>
     <name>Trumpet Client Examples</name>
     <packaging>jar</packaging>
-    <version>2.4.2</version>
+    <version>3.1.1</version>
 
     <description>
         Trumpet Client Examples
@@ -51,7 +51,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.11</artifactId>
+            <artifactId>kafka_2.13</artifactId>
             <classifier>test</classifier>
             <scope>test</scope>
         </dependency>
@@ -143,8 +143,8 @@
                 <rpm.username>hdfs</rpm.username>
                 <rpm.groupname>hadoop</rpm.groupname>
                 <rpm.logdirname>logs</rpm.logdirname>
-                <rpm.targetos>el6</rpm.targetos>
-                <rpm.targetArch>x86_64</rpm.targetArch>
+                <rpm.targetos></rpm.targetos>
+                <rpm.targetArch>noarch</rpm.targetArch>
                 <rpm.path>${rpm.apprefix}/examples</rpm.path>
                 <rpm.logdirpath>${rpm.apprefix}/${rpm.logdirname}</rpm.logdirpath>
                 <rpm.appname>${project.artifactId}</rpm.appname>
@@ -169,7 +169,7 @@
                             <distribution>${rpm.distribution}</distribution>
                             <group>${rpm.group}</group>
                             <needarch>${rpm.targetArch}</needarch>
-                            <classifier>${rpm.targetos}.${rpm.targetArch}</classifier>
+                            <classifier>${rpm.targetos}</classifier>
                             <name>${rpm.appname}</name>
                             <version>
                                 ${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}

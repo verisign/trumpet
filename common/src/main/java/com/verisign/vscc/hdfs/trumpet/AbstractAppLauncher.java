@@ -1,9 +1,11 @@
 package com.verisign.vscc.hdfs.trumpet;
 
-import com.verisign.vscc.hdfs.trumpet.kafka.KafkaUtils;
-import joptsimple.OptionException;
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
+import java.io.Closeable;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -12,11 +14,12 @@ import org.apache.hadoop.util.Tool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.concurrent.TimeUnit;
+import com.verisign.vscc.hdfs.trumpet.kafka.ConsumerHelper;
+import com.verisign.vscc.hdfs.trumpet.kafka.KafkaUtils;
+
+import joptsimple.OptionException;
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
 
 /**
  * <pre>
@@ -32,6 +35,8 @@ public abstract class AbstractAppLauncher implements Tool, Closeable {
     public static final String OPTION_ZK_CONNECT_USER = "zk.connect.user";
     public static final String OPTION_ZK_CONNECT_KAFKA = "zk.connect.kafka";
     public static final String OPTION_TOPIC = "topic";
+    public static final String OPTION_PROPERTIES_PRODUCER = "producer.properties.file";
+    public static final String OPTION_PROPERTIES_CONSUMER = "consumer.properties.file";
     protected static final String DEFAULT_TOPIC_NAME = "hdfs.inotify.events";
     protected static final String OPTION_HELP = "help";
 
@@ -102,6 +107,8 @@ public abstract class AbstractAppLauncher implements Tool, Closeable {
             System.err.println("Either specify --" + OPTION_ZK_CONNECT + ", or both --" + OPTION_ZK_CONNECT_KAFKA + " and --" + OPTION_ZK_CONNECT_USER + ", but not a mix.");
             return ReturnCode.WRONG_ZK_CONFIG;
         }
+        ConsumerHelper.setPathConsumerProperties((String) options.valueOf(OPTION_PROPERTIES_CONSUMER));
+        ConsumerHelper.setPathProducerProperties((String) options.valueOf(OPTION_PROPERTIES_PRODUCER));
 
         if (tmpZkConnect != null) {
             zkConnectKafka = tmpZkConnect;
@@ -145,7 +152,7 @@ public abstract class AbstractAppLauncher implements Tool, Closeable {
         }
 
 
-        if (!KafkaUtils.topicExists(topic, getCuratorFrameworkKafka())) {
+        if (!KafkaUtils.topicExists(topic,curatorFrameworkKafka )) {
             System.err.println("Kafka topic " + topic + " seems not to exist.");
             System.err.println("We do not assume topic auto-creation, so please create it beforehand. ");
             int replica = Math.min(KafkaUtils.retrieveBrokerListFromZK(getCuratorFrameworkKafka()).size(), KafkaUtils.DEFAULT_REPLICATION);
@@ -172,6 +179,10 @@ public abstract class AbstractAppLauncher implements Tool, Closeable {
                 .withRequiredArg();
         getParser().accepts(OPTION_TOPIC, "Name of the kafka topic to publish the inotify events to")
                 .withRequiredArg().defaultsTo(DEFAULT_TOPIC_NAME);
+        getParser().accepts(OPTION_PROPERTIES_PRODUCER, "Producer properties files with or without security for Kafka")
+                .withOptionalArg();
+        getParser().accepts(OPTION_PROPERTIES_CONSUMER, "Consumer properties files with or without security for Kafka")
+                .withOptionalArg();
 
         initParser();
 

@@ -1,22 +1,16 @@
 package com.verisign.vscc.hdfs.trumpet.server.tool;
 
 import com.verisign.vscc.hdfs.trumpet.AbstractAppLauncher;
-import com.verisign.vscc.hdfs.trumpet.server.TrumpetServer;
 import com.verisign.vscc.hdfs.trumpet.dto.EventAndTxId;
-import com.verisign.vscc.hdfs.trumpet.kafka.SimpleConsumerHelper;
-import kafka.message.Message;
-import org.apache.avro.util.ByteBufferInputStream;
+import com.verisign.vscc.hdfs.trumpet.kafka.ConsumerHelper;
+import com.verisign.vscc.hdfs.trumpet.server.TrumpetServer;
+import com.verisign.vscc.hdfs.trumpet.utils.TrumpetHelper;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -36,44 +30,38 @@ public class PeekInotifyEvents extends AbstractAppLauncher {
 
         int numberOfEvents = Integer.parseInt((String) getOptions().valueOf(OPTION_NUMBER_OF_EVENTS));
 
-        Iterator<Message> messagesIterator = SimpleConsumerHelper.getNLastMessages(getTopic(),
+        Iterator<ConsumerRecord<String, String>> recordIterator = ConsumerHelper.getNLastMessages(getTopic(),
                 TrumpetServer.PARTITION_NUM, numberOfEvents, getCuratorFrameworkKafka());
 
-        while (messagesIterator.hasNext()) {
+        while (recordIterator.hasNext()) {
 
-            Message m = messagesIterator.next();
+            ConsumerRecord<String, String> record = recordIterator.next();
 
-            ByteBuffer bb = m.payload().slice();
+            final Map<String, Object> map = TrumpetHelper.toMap(record);
+            JsonNode jsonNode = mapper.convertValue(map, JsonNode.class);
 
-            try (InputStream in = new ByteBufferInputStream(Collections.singletonList(bb))) {
-                JsonNode node = mapper.readTree(in);
-                String txIdStr = node.get(EventAndTxId.FIELD_TXID).getValueAsText();
-                long currentTxId = Long.parseLong(txIdStr);
-                String eventType = node.get(EventAndTxId.FIELD_EVENTTYPE).getValueAsText();
-                JsonNode pathNode = node.get(EventAndTxId.FIELD_PATH);
-                JsonNode srcPathNode = node.get(EventAndTxId.FIELD_SRCPATH);
-                JsonNode dstPathNode = node.get(EventAndTxId.FIELD_DSTPATH);
-                String path = pathNode == null ? null : pathNode.getValueAsText();
-                String srcPath = srcPathNode == null ? null : srcPathNode.getValueAsText();
-                String dstPath = dstPathNode == null ? null : dstPathNode.getValueAsText();
+            String txIdStr = jsonNode.get(EventAndTxId.FIELD_TXID).asText();
+            long currentTxId = Long.parseLong(txIdStr);
+            String eventType = jsonNode.get(EventAndTxId.FIELD_EVENTTYPE).asText();
+            JsonNode pathNode = jsonNode.get(EventAndTxId.FIELD_PATH);
+            JsonNode srcPathNode = jsonNode.get(EventAndTxId.FIELD_SRCPATH);
+            JsonNode dstPathNode = jsonNode.get(EventAndTxId.FIELD_DSTPATH);
+            String path = pathNode == null ? null : pathNode.asText();
+            String srcPath = srcPathNode == null ? null : srcPathNode.asText();
+            String dstPath = dstPathNode == null ? null : dstPathNode.asText();
 
-                LOG.info("INotify Event " + currentTxId + " is of type " + eventType + " about");
-                if (path != null) LOG.info(" path:" + path);
-                if (srcPath != null) LOG.info(" srcPath:" + srcPath);
-                if (dstPath != null) LOG.info(" dstPath:" + dstPath);
-                LOG.info("");
+            LOG.info("INotify Event " + currentTxId + " is of type " + eventType + " about");
+            if (path != null) LOG.info(" path:" + path);
+            if (srcPath != null) LOG.info(" srcPath:" + srcPath);
+            if (dstPath != null) LOG.info(" dstPath:" + dstPath);
+            LOG.info("");
 
-                if (LOG.isDebugEnabled()) {
-                    bb.rewind();
-                    try (InputStream in2 = new ByteBufferInputStream(Collections.singletonList(bb))) {
-                        final Map<String, Object> o = mapper.readValue(in2, Map.class);
-                        LOG.debug("Complete INotify Event is: {}", o);
-                    }
-                }
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Complete INotify Event is: {}", record.value());
 
-            } catch (org.codehaus.jackson.JsonParseException e) {
-                LOG.error("Malformated message..." + new String(bb.array(), Charset.defaultCharset()));
             }
+
+
         }
 
         return ReturnCode.ALL_GOOD;

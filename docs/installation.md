@@ -128,3 +128,57 @@ sudo supervisorctl add trumpet # will start Trumpet as autostart is turned on
 ```
 
 Note #3: all the scripts can be run with `--help` to get additional info
+
+## Security
+
+**Producer config**
+```
+security.protocol=SASL_SSL
+sasl.kerberos.service.name=kafka
+ssl.keystore.location=/etc/kafka/ssl/certs/keystore.jks
+ssl.keystore.password=MYPASSWORD
+ssl.truststore.location=/etc/kafka/ssl/certs/truststore.jks
+ssl.truststore.password=MYPASSWORD
+ssl.enabled.protocols=TLSv1.2
+ssl.protocol=TLSv1.2
+```
+
+
+**Consumer config**
+```
+security.protocol=SASL_SSL
+sasl.kerberos.service.name=kafka
+ssl.keystore.location=/etc/kafka/ssl/certs/keystore.jks
+ssl.keystore.password=MYPASSWORD
+ssl.truststore.location=/etc/kafka/ssl/certs/truststore.jks
+ssl.truststore.password=MYPASSWORD
+ssl.enabled.protocols=TLSv1.2
+ssl.protocol=TLSv1.2
+```
+
+
+**JAAS file**
+Store the JAAS file under /opt/trumpet/server/config/kafka_client_jaas.conf it will be loaded at startunp if the file exist.
+```
+// Kafka Client authentication
+KafkaClient {
+    com.sun.security.auth.module.Krb5LoginModule required
+    useKeyTab=true
+    storeKey=true
+    keyTab="/etc/krb5.keytab"
+    principal="service/instance@auth_realm";
+};
+// Zookeeper client authentication
+Client {
+    com.sun.security.auth.module.Krb5LoginModule required
+    useKeyTab=true
+    storeKey=true
+    keyTab="/etc/krb5.keytab"
+    principal="service/instance@auth_realm";
+};
+```
+
+**Start it**
+```bash
+$ /opt/trumpet/server/bin/trumpet.sh --zk.connect <zk_ip:2181> -consumer.properties.file /opt/trumpet/server/config/consumer.properties --producer.properties.file /opt/trumpet/server/config/producer.properties
+```

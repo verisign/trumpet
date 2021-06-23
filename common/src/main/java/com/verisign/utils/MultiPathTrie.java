@@ -1,10 +1,9 @@
 package com.verisign.utils;
 
-import org.apache.commons.lang.StringUtils;
-
 import javax.annotation.concurrent.NotThreadSafe;
-import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Map;
 
 /**
  */

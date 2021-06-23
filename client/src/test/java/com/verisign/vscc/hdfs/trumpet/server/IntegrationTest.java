@@ -1,15 +1,19 @@
 package com.verisign.vscc.hdfs.trumpet.server;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
-import com.verisign.vscc.hdfs.trumpet.kafka.KafkaUtils;
-import kafka.admin.AdminUtils;
-import kafka.admin.RackAwareMode;
-import kafka.server.KafkaConfig;
-import kafka.server.KafkaServer;
-import kafka.utils.*;
-import kafka.zk.EmbeddedZookeeper;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.Random;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Nullable;
+
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -23,18 +27,22 @@ import org.apache.hadoop.hdfs.DFSTestUtil;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.hdfs.qjournal.MiniQJMHACluster;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.kafka.common.utils.Time;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
+import com.google.common.io.Files;
+import com.verisign.vscc.hdfs.trumpet.kafka.KafkaUtils;
 
-import static org.junit.Assert.assertTrue;
+import kafka.server.KafkaConfig;
+import kafka.server.KafkaServer;
+import kafka.utils.MockTime;
+import kafka.utils.TestUtils;
+import kafka.zk.EmbeddedZookeeper;
 
 public abstract class IntegrationTest {
 
@@ -107,16 +115,17 @@ public abstract class IntegrationTest {
         // setup Zookeeper
         EmbeddedZookeeper zkServer = new EmbeddedZookeeper();
         String zkConnect = ZKHOST + ":" + zkServer.port();
-        ZkClient zkClient = new ZkClient(zkConnect, 30000, 30000, ZKStringSerializer$.MODULE$);
-        ZkUtils zkUtils = ZkUtils.apply(zkClient, false);
 
         // setup Broker
-        int port = TestUtils.RandomPort();
-
+        int port = 9092;
+        final File dir = Files.createTempDir();
         Properties brokerProps = new Properties();
         brokerProps.setProperty("zookeeper.connect", zkConnect);
-        brokerProps.setProperty("broker.id", "0");
-        brokerProps.setProperty("port", String.valueOf(port));
+        brokerProps.setProperty("broker.id", String.valueOf(brokerId));
+        brokerProps.setProperty("listeners", "PLAINTEXT://127.0.0.1:9092");
+        brokerProps.setProperty("log.dir", dir.getPath());
+        brokerProps.setProperty("host.name", "localhost");
+        brokerProps.setProperty("offsets.topic.replication.factor", "1");
         KafkaConfig config = new KafkaConfig(brokerProps);
 
         Time mock = new MockTime();
@@ -131,8 +140,8 @@ public abstract class IntegrationTest {
         assertTrue("Failed to connect to Zookeeper " + zkConnect, curatorFramework.blockUntilConnected(60, TimeUnit.SECONDS));
 
         if (!KafkaUtils.topicExists(trumpetTopicName, curatorFramework)) {
-            AdminUtils.createTopic(zkUtils, trumpetTopicName, 1, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
-            TestUtils.waitUntilMetadataIsPropagated(scala.collection.JavaConversions.asScalaBuffer(servers), trumpetTopicName, 0, TimeUnit.SECONDS.toMillis(60));
+            KafkaUtils.createTopic(trumpetTopicName, 1, 1,curatorFramework);
+          
         }
 
         byte[] ba = curatorFramework.getData().forPath("/brokers/ids/0");

@@ -1,21 +1,18 @@
 package com.verisign.vscc.hdfs.trumpet.server.tool;
 
 import com.google.common.base.Preconditions;
-import com.verisign.vscc.hdfs.trumpet.dto.EventAndTxId;
-import com.verisign.vscc.hdfs.trumpet.server.editlog.EditLogDir;
 import com.verisign.vscc.hdfs.trumpet.AbstractAppLauncher;
+import com.verisign.vscc.hdfs.trumpet.dto.EventAndTxId;
+import com.verisign.vscc.hdfs.trumpet.kafka.ConsumerHelper;
 import com.verisign.vscc.hdfs.trumpet.server.TrumpetServer;
-import com.verisign.vscc.hdfs.trumpet.kafka.SimpleConsumerHelper;
+import com.verisign.vscc.hdfs.trumpet.server.editlog.EditLogDir;
 import com.verisign.vscc.hdfs.trumpet.server.rx.EditLogObservable;
-import kafka.message.Message;
-import org.apache.avro.util.ByteBufferInputStream;
+import com.verisign.vscc.hdfs.trumpet.utils.TrumpetHelper;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
-import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.util.ToolRunner;
-import org.codehaus.jackson.JsonNode;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.codehaus.jackson.map.ObjectMapper;
 import rx.Observable;
 import rx.Subscriber;
@@ -23,9 +20,6 @@ import rx.Subscription;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -80,7 +74,7 @@ public class EventsValidator extends AbstractAppLauncher {
             return ReturnCode.ERROR_WITH_DFS_EDIT_DIR;
         }
 
-        final Iterator<Message> it = SimpleConsumerHelper.getNLastMessages(getTopic(), TrumpetServer.PARTITION_NUM, numberOfEvents, getCuratorFrameworkKafka());
+        final Iterator<ConsumerRecord<String, String>> it = ConsumerHelper.getNLastMessages(getTopic(), TrumpetServer.PARTITION_NUM, numberOfEvents, getCuratorFrameworkKafka());
 
         if (!it.hasNext()) {
             LOG.error("No messages found in kafka topic " + getTopic());
@@ -140,7 +134,7 @@ public class EventsValidator extends AbstractAppLauncher {
                                     return;
                                 }
 
-                                long txId = ((Number)o.get(EventAndTxId.FIELD_TXID)).longValue();
+                                long txId = ((Number) o.get(EventAndTxId.FIELD_TXID)).longValue();
 
                                 lastTxId.set(txId);
                                 if (o.containsKey(EventAndTxId.FIELD_EVENTTYPE)) {
@@ -179,23 +173,26 @@ public class EventsValidator extends AbstractAppLauncher {
                 .withRequiredArg().defaultsTo(String.valueOf(DEFAULT_NUMBER_OF_EVENTS));
     }
 
-    private long getTxIdFromMessage(Message m) {
+    private long getTxIdFromMessage(ConsumerRecord<String, String> record) {
+        long returnVal = 0;
+        if (record != null) {
+            try {
+                final Map<String, Object> map = TrumpetHelper.toMap(record);
+                returnVal = (long) map.get(EventAndTxId.FIELD_TXID);
 
-        ByteBuffer bb = m.payload().slice();
+            } catch (IOException e) {
+                LOG.error("Cannot extract the TXid from the kafka record");
+            }
 
-        try (InputStream in = new ByteBufferInputStream(Collections.singletonList(bb))) {
-            JsonNode node = mapper.readTree(in);
-            return node.get(EventAndTxId.FIELD_TXID).getNumberValue().longValue();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
+        return returnVal;
     }
 
-    protected class ReturnCode extends AbstractAppLauncher.ReturnCode {
+        protected class ReturnCode extends AbstractAppLauncher.ReturnCode {
 
-        public static final int ERROR_WITH_DFS_EDIT_DIR = 5;
-        public static final int NO_MESSAGE_IN_KAFKA = 6;
+            public static final int ERROR_WITH_DFS_EDIT_DIR = 5;
+            public static final int NO_MESSAGE_IN_KAFKA = 6;
+
+        }
 
     }
-
-}

@@ -1,88 +1,81 @@
 package com.verisign.vscc.hdfs.trumpet.kafka;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
-import kafka.server.KafkaConfig;
-import kafka.server.KafkaServer;
-import kafka.utils.MockTime;
-import kafka.utils.TestUtils;
-import kafka.utils.Time;
-import kafka.zk.EmbeddedZookeeper;
-import org.I0Itec.zkclient.ZkClient;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.junit.After;
-import org.junit.Before;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import kafka.utils.ZKStringSerializer$;
-import kafka.utils.ZkUtils;
+import javax.annotation.Nullable;
+
+import org.I0Itec.zkclient.ZkClient;
+import org.I0Itec.zkclient.ZkConnection;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.kafka.common.network.ListenerName;
+import org.apache.kafka.common.security.auth.SecurityProtocol;
+import org.apache.kafka.common.utils.Time;
+import org.junit.After;
+import org.junit.Before;
+
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
+
+import kafka.server.KafkaConfig;
+import kafka.server.KafkaServer;
+import kafka.utils.MockTime;
+import kafka.utils.TestUtils;
+import kafka.zk.EmbeddedZookeeper;
+import scala.Option$;
 
 /**
  * Created by bperroud on 31-Mar-15.
  */
 public abstract class SetupSimpleKafkaCluster {
 
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
     private int brokerId = 0;
     protected int zkConnectionTimeout = 6000;
     protected int zkSessionTimeout = 6000;
 
     protected String zkConnect;
     protected EmbeddedZookeeper zkServer;
+    protected ZkConnection zkConnection;
     protected ZkClient zkClient;
-    protected ZkUtils zkUtils;
     protected KafkaServer kafkaServer;
     protected String kafkaServersString = "";
     protected List<KafkaServer> servers = new ArrayList<>();
 
     protected CuratorFramework curatorFramework;
 
-    protected String ZKHOST = "127.0.0.1";
-    protected String BROKERHOST = "127.0.0.1";
-    protected String BROKERPORT = "9092";
-
     @Before
     public void setup() throws Exception {
 
         // setup Zookeeper
         zkServer = new EmbeddedZookeeper();
-        zkConnect = ZKHOST + ":" + zkServer.port();
-        zkClient = new ZkClient(zkConnect, zkConnectionTimeout, zkSessionTimeout, ZKStringSerializer$.MODULE$);
-        zkUtils = ZkUtils.apply(zkClient, false);
+        zkConnect = "127.0.0.1:" + zkServer.zookeeper().getClientPort();
 
-        int zkPort = TestUtils.RandomPort();
+        zkConnection = new ZkConnection(zkConnect,zkSessionTimeout);
+        zkClient = new ZkClient(zkConnection, zkConnectionTimeout);
 
-        Properties brokerProps = new Properties();
-        brokerProps.setProperty("zookeeper.connect", zkConnect);
-        brokerProps.setProperty("port",String.valueOf(zkPort));
-        brokerProps.setProperty("broker.id", String.valueOf(brokerId));
-        brokerProps.setProperty("log.dirs", Files.createTempDirectory("kafka-test").toAbsolutePath().toString());
-        brokerProps.setProperty("listeners", "PLAINTEXT://" + BROKERHOST +":" + BROKERPORT);
-        KafkaConfig config = new KafkaConfig(brokerProps);
+        // setup Broker
+        int port = 19092;
+        Properties props = TestUtils.createBrokerConfig(brokerId, zkConnect, false, false,
+            port, Option$.MODULE$.empty(), Option$.MODULE$.empty(), Option$.MODULE$.empty(), true, false, -1,
+            false, -1, false, -1, Option$.MODULE$.empty(), -1, false, 10, (short) 1);
+
+        KafkaConfig config = new KafkaConfig(props);
         Time mock = new MockTime();
-
         kafkaServer = TestUtils.createServer(config, mock);
-
         servers.add(kafkaServer);
-        kafkaServersString += kafkaServer.socketServer().config().hostName() + ":" + kafkaServer.socketServer().config().port();
-
+        kafkaServersString = kafkaServersToListOfString(servers);
+        System.out.println("KAFKASERVERSTRING: "+kafkaServersString);
         curatorFramework = CuratorFrameworkFactory.builder().connectString(zkConnect)
                 .retryPolicy(new ExponentialBackoffRetry(1000, 3))
                 .connectionTimeoutMs(zkConnectionTimeout).sessionTimeoutMs(zkSessionTimeout)
                 .build();
         curatorFramework.start();
+        Thread.sleep(5000);
     }
-
 
     @After
     public void tearDown() {
@@ -102,6 +95,14 @@ public abstract class SetupSimpleKafkaCluster {
         if (zkServer != null) {
             zkServer.shutdown();
         }
+        if(zkConnection != null){
+            try {
+                zkConnection.close();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        servers = new ArrayList<>();
 
     }
 
@@ -110,9 +111,9 @@ public abstract class SetupSimpleKafkaCluster {
             @Nullable
             @Override
             public String apply(KafkaServer input) {
-                return input.socketServer().config().hostName()+ ":"
-                        + input.socketServer().config().port();
+                return "127.0.0.1:" + input.boundPort(ListenerName.forSecurityProtocol(SecurityProtocol.PLAINTEXT));
             }
         }));
     }
+
 }

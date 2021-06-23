@@ -4,7 +4,7 @@ import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.ScheduledReporter;
 import com.verisign.vscc.hdfs.trumpet.AbstractAppLauncher;
-import com.verisign.vscc.hdfs.trumpet.kafka.SimpleConsumerHelper;
+import com.verisign.vscc.hdfs.trumpet.kafka.ConsumerHelper;
 import com.verisign.vscc.hdfs.trumpet.server.metrics.Metrics;
 import metrics_influxdb.HttpInfluxdbProtocol;
 import metrics_influxdb.InfluxdbReporter;
@@ -26,7 +26,6 @@ public class TrumpetServerCLI extends AbstractAppLauncher {
     public static final String OPTION_BASE_THROTTLE_TIME_MS = "base.throttle.time.ms";
     public static final String OPTION_TSDB_SERVER_HOST_PORT = "tsdb.server.hostport";
     public static final String OPTION_TSDB_DB = "tsdb.db";
-    public static final String OPTION_KAFKA_REQUIRED_ACKS = "kafka.required.acks";
     public static final String OPTION_METRICS_PREFIX_DEFAULT = "trumpet." + getHostname();
 
     private final CountDownLatch latch = new CountDownLatch(1);
@@ -38,15 +37,22 @@ public class TrumpetServerCLI extends AbstractAppLauncher {
 
     private File dfsEditsDir;
     private long baseThrottleTimeMs;
-    private int kafkaRequiredAcks;
 
-    public static void main(String[] args) throws Exception {
-        int res = ToolRunner.run(new Configuration(), new TrumpetServerCLI(), args);
+    public static void main(String[] args) {
+        int res = 0;
+        try {
+            res = ToolRunner.run(new Configuration(), new TrumpetServerCLI(), args);
+        } catch (Exception e) {
+
+            System.err.println("Result error = " + res + " \n MSG: "+e.getMessage());
+            e.printStackTrace();
+        }
         System.exit(res);
     }
 
     @Override
     protected int internalRun() throws Exception {
+        LOG.debug("Internal run start");
 
         String tmpDfsEditsDir = null;
         if (getOptions().has(OPTION_DFS_EDITS_DIR)) {
@@ -78,11 +84,11 @@ public class TrumpetServerCLI extends AbstractAppLauncher {
         }
 
         baseThrottleTimeMs = Long.parseLong((String) getOptions().valueOf(OPTION_BASE_THROTTLE_TIME_MS));
-        kafkaRequiredAcks = Integer.parseInt((String) getOptions().valueOf(OPTION_KAFKA_REQUIRED_ACKS));
-
+        LOG.debug("BaseThrottleTimeMs is {}", baseThrottleTimeMs);
         final JmxReporter localJmxReporter = JmxReporter.forRegistry(Metrics.getRegistry()).build();
         jmxReporter = localJmxReporter;
         localJmxReporter.start();
+        LOG.debug("JMXReporter is started ");
 
         final ScheduledReporter localReporter;
         if (getOptions().has(OPTION_TSDB_SERVER_HOST_PORT)) {
@@ -127,7 +133,7 @@ public class TrumpetServerCLI extends AbstractAppLauncher {
 */
         Metrics.uptime();
 
-        final TrumpetServer localTrumpetServer = new TrumpetServer(getCuratorFrameworkUser(), getConf(), getTopic(), dfsEditsDir, kafkaRequiredAcks, baseThrottleTimeMs);
+        final TrumpetServer localTrumpetServer = new TrumpetServer(getCuratorFrameworkUser(), getConf(), getTopic(), dfsEditsDir, baseThrottleTimeMs);
         trumpetServer = localTrumpetServer;
         Runtime.getRuntime().addShutdownHook(new Thread() {
 
@@ -137,16 +143,11 @@ public class TrumpetServerCLI extends AbstractAppLauncher {
                 LOG.info("Trumpet shutdown from external signal received.");
 
                 try {
-                    localTrumpetServer.close();
+                    internalClose();
                 } catch (IOException e) {
                     // well, can't really recover here, shutting down anyway...
+                    System.out.println("Exception while closing everything. Cannot recover anyway, completing the shutdown process...");
                     e.printStackTrace();
-                } finally {
-                    localJmxReporter.stop();
-                    if (localReporter != null) {
-                        localReporter.stop();
-                    }
-                    Metrics.close();
                 }
             }
         });
@@ -177,8 +178,7 @@ public class TrumpetServerCLI extends AbstractAppLauncher {
                 .withRequiredArg();
         getParser().accepts(OPTION_TSDB_DB, "Prefix to add on the metrics reported to Graphite.")
                 .withRequiredArg().defaultsTo(OPTION_METRICS_PREFIX_DEFAULT);
-        getParser().accepts(OPTION_KAFKA_REQUIRED_ACKS, "Kafka request.required.acks property. 0=none (async), 1=leader, -1=all. See kafka documentation for more details.")
-                .withRequiredArg().defaultsTo(String.valueOf(SimpleConsumerHelper.DEFAULT_REQUIRED_ACKS));
+
     }
 
 

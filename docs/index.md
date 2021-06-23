@@ -76,7 +76,7 @@ Now it's as easy as using a Java [Iterable](https://docs.oracle.com/javase/7/doc
 ```java
 String kafkaTopic = ...
 String zkConnect = ...
-for (Map<String, Object> event : new TrumpetEventStreamer(curatorFramework, kafkaTopic)) {
+for (Map<String, Object> event : new TrumpetEventConsumer(curatorFramework, kafkaTopic)) {
     ... do something with your event!
 }
 ```

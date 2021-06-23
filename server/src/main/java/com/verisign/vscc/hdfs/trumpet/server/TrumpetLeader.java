@@ -1,41 +1,30 @@
 package com.verisign.vscc.hdfs.trumpet.server;
 
-import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 import com.verisign.vscc.hdfs.trumpet.dto.EventAndTxId;
-import com.verisign.vscc.hdfs.trumpet.kafka.SimpleConsumerHelper;
+import com.verisign.vscc.hdfs.trumpet.kafka.ConsumerHelper;
 import com.verisign.vscc.hdfs.trumpet.server.editlog.EditLogDir;
-import com.verisign.vscc.hdfs.trumpet.server.editlog.WatchDog;
 import com.verisign.vscc.hdfs.trumpet.server.metrics.Metrics;
 import com.verisign.vscc.hdfs.trumpet.server.rx.EditLogObservable;
 import com.verisign.vscc.hdfs.trumpet.server.rx.ProducerSubscriber;
-import kafka.javaapi.producer.Producer;
-import kafka.message.Message;
-import org.apache.avro.util.ByteBufferInputStream;
+import com.verisign.vscc.hdfs.trumpet.utils.TrumpetHelper;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.leader.CancelLeadershipException;
-import org.apache.curator.framework.recipes.leader.LeaderSelector;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListener;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListenerAdapter;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
-import org.codehaus.jackson.JsonNode;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.producer.Producer;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.Subscription;
-import rx.functions.Func1;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +43,6 @@ public class TrumpetLeader extends LeaderSelectorListenerAdapter implements Lead
     private final String topic;
     private final EditLogDir editLogDir;
     private final long baseThrottleTimeMs;
-    private final int kafkaRequiredAcks;
 
     private final DistributedFileSystem dfs;
 
@@ -65,16 +53,15 @@ public class TrumpetLeader extends LeaderSelectorListenerAdapter implements Lead
 
     public TrumpetLeader(CuratorFramework curatorFramework, DistributedFileSystem dfs, String topic, EditLogDir editLogDir)
             throws IOException {
-        this(curatorFramework, dfs, topic, editLogDir, SimpleConsumerHelper.DEFAULT_REQUIRED_ACKS, DEFAULT_BASE_THROTTLE_TIME_MS);
+        this(curatorFramework, dfs, topic, editLogDir, DEFAULT_BASE_THROTTLE_TIME_MS);
     }
 
-    public TrumpetLeader(CuratorFramework curatorFramework, DistributedFileSystem dfs, String topic, EditLogDir editLogDir, int kafkaRequiredAcks, long baseThrottleTimeMs)
+    public TrumpetLeader(CuratorFramework curatorFramework, DistributedFileSystem dfs, String topic, EditLogDir editLogDir, long baseThrottleTimeMs)
             throws IOException {
         this.curatorFramework = curatorFramework;
         this.dfs = dfs;
         this.topic = topic;
         this.editLogDir = editLogDir;
-        this.kafkaRequiredAcks = kafkaRequiredAcks;
         this.baseThrottleTimeMs = baseThrottleTimeMs;
     }
 
@@ -84,6 +71,7 @@ public class TrumpetLeader extends LeaderSelectorListenerAdapter implements Lead
 
         Metrics.leadershipUptime();
         Metrics.leadershipCounter().inc();
+        Metrics.leadershipStatus().inc();
 
         LOG.debug("Elected as leader, let's stream!");
         boolean forceResetTxId = false;
@@ -109,7 +97,7 @@ public class TrumpetLeader extends LeaderSelectorListenerAdapter implements Lead
             File editsLogFile = null;
             long startTxId = 0L;
 
-            producer = getProducer(curatorFramework, kafkaRequiredAcks);
+            producer = getProducer(curatorFramework);
 
             while (run) {
 
@@ -156,6 +144,7 @@ public class TrumpetLeader extends LeaderSelectorListenerAdapter implements Lead
                         s = Observable.create(getEditLogObservable(editsLogFile, startTxId))
                                 .subscribe(getProducerSubscriber(topic, producer, lastPublishedTxId));
                         exceptionCounter = 0;
+                        lastTransactionSeenMs = System.currentTimeMillis();
                     } finally {
                         if (s != null) {
                             s.unsubscribe();
@@ -200,7 +189,7 @@ public class TrumpetLeader extends LeaderSelectorListenerAdapter implements Lead
                     boolean sameFile = editsLogFile.equals(previousEditLogFile);
                     boolean hasNewTx = startTxId <= lastPublishedTxId.get();
 
-                    if (startTxId > lastPublishedTxId.get() || sameFile) {
+                    if (!hasNewTx || sameFile) {
 
                         if (hasNewTx) {
                             throttleCounter = 1;
@@ -212,7 +201,7 @@ public class TrumpetLeader extends LeaderSelectorListenerAdapter implements Lead
                         if (lastTransactionSeenMs < System.currentTimeMillis() - 2 * TimeUnit.SECONDS.toMillis(DFSConfigKeys.DFS_HA_LOGROLL_PERIOD_DEFAULT)) {
                             // no transaction processed for roughly 10 minutes.
                             throw new CancelLeadershipException("No transaction processed for a long time " +
-                                    "(throttleCounter=" + throttleCounter +", lastTransactionSeenMs=" + lastTransactionSeenMs + "), cancelling leadership)");
+                                    "(throttleCounter=" + throttleCounter + ", lastTransactionSeenMs=" + lastTransactionSeenMs + "), cancelling leadership)");
                         }
 
                         long sleepMs = Math.min(MAX_THROTTLE_TIME_MS,
@@ -241,19 +230,17 @@ public class TrumpetLeader extends LeaderSelectorListenerAdapter implements Lead
 
 
         } finally {
+            Metrics.leadershipStatus().dec();
             if (producer != null) {
                 producer.close();
             }
         }
     }
 
-    private Producer getProducer(CuratorFramework curatorFramework) throws Exception {
-        return SimpleConsumerHelper.getProducer(curatorFramework);
-    }
 
     @VisibleForTesting
-    public Producer getProducer(CuratorFramework curatorFramework, int requiredAcks) throws Exception {
-        return SimpleConsumerHelper.getProducer(curatorFramework, requiredAcks);
+    public Producer getProducer(CuratorFramework curatorFramewor) throws Exception {
+        return ConsumerHelper.getProducer(curatorFramework);
     }
 
     @VisibleForTesting
@@ -278,21 +265,12 @@ public class TrumpetLeader extends LeaderSelectorListenerAdapter implements Lead
             // and get the HDFS txId out of the message.
             // If no message, start from the latest HDFS tx.
 
-            final Message msg = SimpleConsumerHelper.getLastMessage(topic, PARTITION_NUM, curatorFramework);
+            final ConsumerRecord<String, String> record = ConsumerHelper.getLastRecords(topic, PARTITION_NUM, curatorFramework);
+            if (record != null) {
+                final Map<String, Object> map = TrumpetHelper.toMap(record);
+                long r = Long.valueOf(map.get(EventAndTxId.FIELD_TXID).toString());
+                return r;
 
-            String payload = null;
-
-            if (msg != null) {
-
-                final ByteBuffer bb = msg.payload().slice();
-                try (InputStream in = new ByteBufferInputStream(Collections.singletonList(bb))) {
-                    final JsonNode node = mapper.readTree(in);
-
-                    return node.get(EventAndTxId.FIELD_TXID).getNumberValue().longValue();
-                } catch (java.io.CharConversionException | org.codehaus.jackson.JsonParseException e) {
-                    LOG.warn("Parsing exception when reading last message from topic. payload is " + payload + ". " +
-                            "Re-starting from NN current position", e);
-                }
 
             }
         }

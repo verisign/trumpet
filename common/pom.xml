@@ -5,13 +5,13 @@
     <parent>
         <groupId>com.verisign.vscc.trumpet</groupId>
         <artifactId>trumpet-parent</artifactId>
-        <version>2.4.2</version>
+        <version>3.1.1</version>
     </parent>
 
     <artifactId>trumpet-common</artifactId>
     <name>Trumpet Common</name>
     <packaging>jar</packaging>
-    <version>2.4.2</version>
+    <version>3.1.1</version>
 
     <description>
     </description>
@@ -26,7 +26,7 @@
         <dependency>
             <groupId>com.101tec</groupId>
             <artifactId>zkclient</artifactId>
-            <version>0.8</version>
+            <version>0.11</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -39,21 +39,25 @@
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.11</artifactId>
+            <artifactId>kafka_2.13</artifactId>
+            <version>2.5.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.11</artifactId>
+            <artifactId>kafka_2.13</artifactId>
+            <version>2.5.1</version>
             <classifier>test</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
+            <version>2.5.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
+            <version>2.5.1</version>
             <classifier>test</classifier>
             <scope>test</scope>
         </dependency>
@@ -84,10 +88,10 @@
             <artifactId>jackson-databind</artifactId>
             <version>2.10.0</version>
         </dependency>
-        <!-- <dependency>
-             <groupId>com.netflix.curator</groupId>
-             <artifactId>curator-x-zkclient-bridge</artifactId>
-             <version>2.0.0</version>
-         </dependency>-->
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>3.5.8</version>
+        </dependency>
     </dependencies>
 </project>

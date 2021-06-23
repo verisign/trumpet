@@ -2,7 +2,8 @@ package com.verisign.vscc.hdfs.trumpet.server;
 
 import com.google.common.base.Preconditions;
 import com.verisign.vscc.hdfs.trumpet.server.editlog.EditLogDir;
-import com.verisign.vscc.hdfs.trumpet.server.editlog.WatchDog;
+import com.verisign.vscc.hdfs.trumpet.server.editlog.EditLogDirWatchDog;
+import com.verisign.vscc.hdfs.trumpet.server.rx.ProducerWatchDog;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
 import org.apache.hadoop.conf.Configuration;
@@ -32,13 +33,13 @@ public class TrumpetServer implements Runnable, AutoCloseable {
     private final String topic;
     private final File dfsEditsDir;
     private final long baseThrottleTimeMs;
-    private final int kafkaRequiredAcks;
 
     private final DistributedFileSystem dfs;
     private final LeaderSelector leaderSelector;
     private final TrumpetLeader trumpetLeader;
     private final EditLogDir editLogDir;
-    private final WatchDog watchDog;
+    private final EditLogDirWatchDog editLogDirWatchDog;
+    private final ProducerWatchDog producerWatchDog;
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final Random random = new Random();
@@ -47,29 +48,28 @@ public class TrumpetServer implements Runnable, AutoCloseable {
     private final CountDownLatch executionLatch = new CountDownLatch(1);
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
-    public TrumpetServer(CuratorFramework curatorFramework, Configuration conf, String topic, File dfsEditsDir, int kafkaRequiredAcks)
+    public TrumpetServer(CuratorFramework curatorFramework, Configuration conf, String topic, File dfsEditsDir)
             throws IOException {
-        this(curatorFramework, conf, topic, dfsEditsDir, kafkaRequiredAcks, DEFAULT_BASE_THROTTLE_TIME_MS);
+        this(curatorFramework, conf, topic, dfsEditsDir, DEFAULT_BASE_THROTTLE_TIME_MS);
     }
 
-    public TrumpetServer(CuratorFramework curatorFramework, Configuration conf, String topic, File dfsEditsDir, int kafkaRequiredAcks, long baseThrottleTimeMs)
+    public TrumpetServer(CuratorFramework curatorFramework, Configuration conf, String topic, File dfsEditsDir, long baseThrottleTimeMs)
             throws IOException {
         this.curatorFramework = curatorFramework;
         this.conf = conf;
         this.topic = topic;
         this.dfsEditsDir = dfsEditsDir;
         this.baseThrottleTimeMs = baseThrottleTimeMs;
-        this.kafkaRequiredAcks = kafkaRequiredAcks;
 
         FileSystem fs = FileSystem.get(conf);
         Preconditions.checkState(fs instanceof DistributedFileSystem, "FileSystem is not a DistributedFileSystem");
         dfs = (DistributedFileSystem) fs;
 
         editLogDir = new EditLogDir(dfsEditsDir, conf);
-        watchDog = new WatchDog(dfs, editLogDir, this);
+        editLogDirWatchDog = new EditLogDirWatchDog(dfs, editLogDir, this);
 
-        trumpetLeader = new TrumpetLeader(curatorFramework, dfs, topic, editLogDir, kafkaRequiredAcks, baseThrottleTimeMs);
-
+        trumpetLeader = new TrumpetLeader(curatorFramework, dfs, topic, editLogDir, baseThrottleTimeMs);
+        producerWatchDog = new ProducerWatchDog(this);
         leaderSelector = new LeaderSelector(curatorFramework, zkLeaderElectionName(topic) , trumpetLeader);
         leaderSelector.autoRequeue();
     }
@@ -96,7 +96,8 @@ public class TrumpetServer implements Runnable, AutoCloseable {
             leaderSelector.interruptLeadership();
             leaderSelector.close();
             executionLatch.countDown();
-            watchDog.close();
+            editLogDirWatchDog.close();
+            producerWatchDog.close();
         }
     }
 

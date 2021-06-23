@@ -5,8 +5,8 @@ import com.verisign.vscc.hdfs.trumpet.dto.EventAndTxId;
 import com.verisign.vscc.hdfs.trumpet.server.exception.EditLogObservableException;
 import com.verisign.vscc.hdfs.trumpet.server.exception.ProducerSubscriberException;
 import com.verisign.vscc.hdfs.trumpet.server.metrics.Metrics;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,17 +62,18 @@ public class ProducerSubscriber extends Subscriber<Map<String, Object>> {
         try {
             if (o.containsKey(EventAndTxId.FIELD_EVENTTYPE)) {
                 String s = mapper.writeValueAsString(o);
+                LOG.debug("message: {}", s);
 
-                KeyedMessage<String, String> message = new KeyedMessage<String, String>(topic, s);
+                ProducerRecord<String, String> message = new ProducerRecord<String, String>(topic, s);
 
-                try (Timer.Context context = Metrics.kafkaSender().time();) {
+                try (Timer.Context context = Metrics.kafkaSender().time()) {
                     producer.send(message);
                 } finally {
                     Metrics.kafkaTransaction().mark();
                 }
             }
 
-            lastSeenTxId.set(((Number)o.get(EventAndTxId.FIELD_TXID)).longValue());
+            lastSeenTxId.set(((Number) o.get(EventAndTxId.FIELD_TXID)).longValue());
 
         } catch (IOException e) {
             throw new ProducerSubscriberException("Got an exception while executing onNext, lastSeenTxId is " + lastSeenTxId.get(), e);

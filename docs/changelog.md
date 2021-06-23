@@ -1,10 +1,13 @@
 
 Trumpet Changelog.
+## Version 2.6
 
-## Version 2.3.1
-
-* Avoid message leak in the Infinite Streamer
-* Make server more integration test friendly (contrib by vgrivel)
+* Use jdk 8
+* Add Kafka 1.0 support
+* Implement the new Consumer for Kafka 0.10
+* Add support to security with SASL_SSL
+* Deprecated the TrumpetEventStreamer and create a new TrumpetEventConsumer
+* Possibility to specify the consumer.properties and producer.properties files
 
 ## Version 2.3
 

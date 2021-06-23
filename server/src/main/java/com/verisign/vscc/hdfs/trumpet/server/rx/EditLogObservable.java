@@ -6,7 +6,7 @@ import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.hdfs.inotify.Event;
 import org.apache.hadoop.hdfs.inotify.InotifyCompat;
-import org.apache.hadoop.hdfs.protocol.HdfsConstants;
+import org.apache.hadoop.hdfs.server.common.HdfsServerConstants;
 import org.apache.hadoop.hdfs.server.namenode.EditLogFileInputStream;
 import org.apache.hadoop.hdfs.server.namenode.FSEditLogOp;
 import org.apache.hadoop.hdfs.tools.offlineEditsViewer.OfflineEditsBinaryLoaderVisibilityWrapper;
@@ -52,7 +52,7 @@ public class EditLogObservable implements Observable.OnSubscribe<Map<String, Obj
         OfflineEditsBinaryLoaderVisibilityWrapper tmpLoader = null;
 
         try {
-            tmpElis = new EditLogFileInputStream(editsLogFile, startTxId, HdfsConstants.INVALID_TXID, false);
+            tmpElis = new EditLogFileInputStream(editsLogFile, startTxId, HdfsServerConstants.INVALID_TXID, false);
             tmpLoader = new OfflineEditsBinaryLoaderVisibilityWrapper(this, tmpElis, new OfflineEditsViewer.Flags());
         } finally {
             if (tmpLoader == null && tmpElis != null) {
@@ -150,7 +150,7 @@ public class EditLogObservable implements Observable.OnSubscribe<Map<String, Obj
                 // so using hash map here and a compat wrapper be be able to
                 // be version agnostic.
 
-                final Map<String, Object> introspected = new HashMap<>(new BeanMap(e));
+                final Map<String, Object> introspected = new HashMap(new BeanMap(e));
                 introspected.put(EventAndTxId.FIELD_TXID, txId);
 
                 subscriberRef.get().onNext(introspected);

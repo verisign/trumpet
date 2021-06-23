@@ -1,70 +1,69 @@
 package com.verisign.vscc.hdfs.trumpet.kafka;
 
-import kafka.admin.AdminUtils;
-import kafka.admin.RackAwareMode;
-import kafka.javaapi.producer.Producer;
-import kafka.message.Message;
-import kafka.producer.KeyedMessage;
-import kafka.producer.ProducerConfig;
-import org.apache.curator.framework.CuratorFramework;
+import java.util.Properties;
+import java.util.Random;
+import java.util.concurrent.Future;
+
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
 
 /**
  * Created by bperroud on 31-Mar-15.
  */
 public class SimpleKafkaTest extends SetupSimpleKafkaCluster {
 
-    private String topic = "test";
-    private static final String TOPIC = "test";
+    protected final Random r = new Random();
 
     @Test
     public void producerTest() throws Exception {
 
-        Assert.assertNotNull(zkClient);
-        Assert.assertNotNull(zkUtils);
+        Assert.assertNotNull(curatorFramework);
 
-        // create topic
-        AdminUtils.createTopic(zkUtils, TOPIC, 1, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
+        String topicName1 = "myTopic";
+        int partitions = 1;
+        int replication = 1;
 
-        Properties producerProps = new Properties();
-        producerProps.setProperty("metadata.broker.list", BROKERHOST + ":" + BROKERPORT);
-        producerProps.setProperty("key.serializer","org.apache.kafka.common.serialization.StringSerializer");
-        producerProps.setProperty("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        KafkaUtils.createTopic(topicName1, partitions, replication, curatorFramework);
 
-        LOG.info(producerProps.toString());
 
-        ProducerConfig pConfig = new ProducerConfig(producerProps);
-        Producer producer = new Producer(pConfig);
+        // setup producer
+        Properties properties = new Properties();
+        properties.put("bootstrap.servers", kafkaServersString);
+        properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        properties.put("value.serializer",
+                "org.apache.kafka.common.serialization.StringSerializer");
+        properties.put("security.protocol", ConsumerHelper.DEFAULT_SECURITY_PROTOCOL);
+        properties.put("acks", "all");
+
+        Producer<String, String> producer = new KafkaProducer(properties);
 
         // send message
-        KeyedMessage<Integer, byte[]> data = new KeyedMessage(topic, "test-message".getBytes());
+        ProducerRecord<String, String> record =
+                new ProducerRecord<String, String>(topicName1, "test-message");
 
-        List<KeyedMessage> messages = new ArrayList<>();
-        messages.add(data);
+        producer.send(record);
+        producer.send(record);
+        producer.send(record);
+        producer.send(record);
+        producer.send(record);
+        Future<RecordMetadata> future = producer.send(record);
+        
 
-        producer.send(messages);
-        producer.send(messages);
-        producer.send(messages);
-        producer.send(messages);
-        producer.send(messages);
-        producer.send(messages);
-
-        CuratorFramework curatorFramework = CuratorFrameworkFactory.builder().connectString(zkConnect)
+        curatorFramework = CuratorFrameworkFactory.builder().connectString(zkConnect)
                 .retryPolicy(new ExponentialBackoffRetry(1000, 3))
                 .build();
         curatorFramework.start();
 
-
-        Message lastMessage = SimpleConsumerHelper.getLastMessage(topic, 0, curatorFramework);
+        ConsumerRecord<String, String> lastMessage = ConsumerHelper.getLastRecords(topicName1, 0, curatorFramework);
 
         Assert.assertNotNull(lastMessage);
     }
+
 }

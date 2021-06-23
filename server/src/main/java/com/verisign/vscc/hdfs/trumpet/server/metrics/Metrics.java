@@ -18,6 +18,7 @@ public class Metrics {
 
     private static final String leadershipUptime = name(TrumpetLeader.class, "leadership", "uptime");
     private static final Counter leadershipCounter = getRegistry().counter(name(TrumpetLeader.class, "leadership", "count"));
+    private static final Counter leadershipStatus = getRegistry().counter(name(TrumpetLeader.class, "leadership", "status"));
     private static final String uptime = name(TrumpetServer.class, "uptime");
     private static final String lastTransactionIdName = name(TrumpetServer.class, "transactions", "lastId");
     private static final Meter transactionInotifyMeter = getRegistry().meter(name(TrumpetServer.class, "transactions", "inotify"));
@@ -38,6 +39,11 @@ public class Metrics {
                 return System.currentTimeMillis() - starttime;
             }
         });
+    }
+
+
+    public static Counter leadershipStatus() {
+        return leadershipStatus;
     }
 
     public static Counter leadershipCounter() {
@@ -65,6 +71,11 @@ public class Metrics {
             }
         });
     }
+
+    public static Gauge<Long> lastTransactionId() {
+        return getRegistry().getGauges().get(lastTransactionIdName);
+    }
+
 
     public static Meter inotifyTransaction() {
         return transactionInotifyMeter;

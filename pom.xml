@@ -91,33 +91,14 @@
 
     <repositories>
         <repository>
-            <id>Artifactory Virtual maven Repo</id>
-            <name>Artifactory Virtual maven Repo</name>
-            <url>https://artifactory.vrsn.com/artifactory/maven-repo</url>
+            <id>Maven Central Repo</id>
+            <name>Maven Central Repo</name>
+            <url>https://repo1.maven.org/maven2</url>
         </repository>
         <repository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>central</id>
-                <name>libs-release</name>
-                <url>https://artifactory.vrsn.com/artifactory/libs-release</url>
-        </repository>
-        <repository>
-            <snapshots/>
-            <id>snapshots</id>
-            <name>libs-snapshot</name>
-            <url>https://artifactory.vrsn.com/artifactory/libs-snapshot</url>
-        </repository>
-        <repository>
-            <id>Artifactory Virtual Repo</id>
-            <name>Artifactory Virtual Repo</name>
-            <url>https://artifactory.vrsn.com/artifactory/maven</url>
-        </repository>
-        <repository>
-            <id>Artifactory Cloudera Repo</id>
-            <name>Artifactory Cloudera Repo</name>
-            <url>https://artifactory.vrsn.com/artifactory/cloudera</url>           
+            <id>Artifactory Cloudera Releases</id>
+            <name>Artifactory Cloudera Releases</name>
+            <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
         </repository>
     </repositories>
 

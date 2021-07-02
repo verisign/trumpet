@@ -49,12 +49,12 @@
         <maven.dependency.plugin.version>2.4</maven.dependency.plugin.version>
         <maven.rpm.plugin.version>2.1-alpha-1</maven.rpm.plugin.version>
 
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
         <mockito.version>1.10.19</mockito.version>
         <logback.version>1.2.3</logback.version>
         <jackson.core.version>2.11.3</jackson.core.version>
         <jackson.mapper.version>2.11.3</jackson.mapper.version>
-        <guava.version>23.6-jre</guava.version>
+        <guava.version>30.0-jre</guava.version>
         <commons-cli.version>1.2</commons-cli.version>
         <commons.lang.version>2.6</commons.lang.version>
         <slf4j.version>1.7.15</slf4j.version>
